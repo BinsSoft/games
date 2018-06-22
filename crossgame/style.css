@@ -1,6 +1,8 @@
 body {
-	background: #969696;
+	/*background: #969696;*/
 	position: relative;
+	background-image: url('./background.jpg');
+	background-size: cover; 
 }
 .cross-game-container {
 	width: 100%;
@@ -17,17 +19,29 @@ body {
 }
 .cell {
 	display: table-cell;
-	width: 100px;
-	height: 100px;
-	border: 1px solid #CCC;
+	width: 150px;
+	height: 150px;
 	position: relative;
 	font-weight: bold;
+	border-bottom: 5px solid #FFF;
+    border-right: 5px solid #FFF;
+}
+.cell:last-of-type{
+	border-right: none;
+}
+.row:last-of-type .cell{
+	border-bottom: none;
+}
+.cell[data-click=false] {
+	/*background: #CCC;*/
 }
 .cell-content {
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%,-50%);
+	font-size: 80px;
+	color: #FFF;
 }
 .hidden {
 	display: none;
