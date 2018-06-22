@@ -23,7 +23,7 @@ class CorssGame {
 				result : []
 			},
 		];
-		this.playerTurn = 1;
+		this.playerTurn = 0;
 		this.totalClick = 0;
 		this.init()
 	}
@@ -33,6 +33,13 @@ class CorssGame {
 							.addClass('player-conatiner')
 							.appendTo(this.selector);
 		let playerDisplayContainer = $("<div/>").addClass('player-display-container').appendTo(playerContainer)
+		var playContainer = $("<div/>")
+							.addClass('play-conatiner hidden')
+							.attr({
+								'data-turn' : 0,
+								'data-click-count' : 0
+							})
+							.appendTo(this.selector);
 		let playerForm = $("<div/>")
 						.addClass('player-form')
 						.appendTo(playerContainer);
@@ -48,7 +55,6 @@ class CorssGame {
 			value : 'Enter'
 		})
 		.bind('click',()=>{
-			//var keys = Object.keys(this.players);
 			$(this.players).each((i,player)=>{
 				let attrName = playerDisplayContainer.find('p:eq('+i+')').attr('data-name');
 				this.players[i].name = (attrName != undefined)? attrName :'';
@@ -61,63 +67,10 @@ class CorssGame {
 			socket.emit('players', this.players);
 
 			playerForm.addClass('hidden');
-
+			playContainer.removeClass('hidden');
+			this.appendBoard(playContainer);
 		})
 		.appendTo(playerForm)
-
-		var playContainer = $("<div/>")
-							.addClass('play-conatiner hidden')
-							.appendTo(this.selector);
-		var titleContainer = $("<div/>")
-					.addClass('title-container')
-					.appendTo(playContainer);
-		var turnContainer = $("<div/>")
-							.addClass('turn-container')
-							.text('Now '+this.players[this.playerTurn].name+' Turn')
-							.appendTo(titleContainer);
-		this.resultContainer = $("<div/>")
-						      .addClass('result-conatiner')
-						      .appendTo(titleContainer);
-
-		var board = $("<div/>")
-					.addClass('board')
-					.appendTo(playContainer);
-		let row ;
-		for (let r=0; r<3; r++) {
-			row = $("<div/>")
-				.addClass('row')
-				.appendTo(board);
-			for (let c=0; c<3; c++) {
-				let cellValue = this.row[r]+c;
-				$("<div/>")
-				.attr({
-					'data-value' : cellValue,
-					'data-click' : 'true'
-				})
-				.addClass('cell')
-				.bind('click',()=>{
-					if ($("div.cell[data-value="+cellValue+"]").attr('data-click') == 'true') {
-						this.players[this.playerTurn].result.push(cellValue);
-						let html = '';
-						if (this.playerTurn == 1) {
-							html = '&#x2716';
-						} else {
-							html = '&#x25EF;';
-						}
-						$("div.cell[data-value="+cellValue+"]")
-							.html('<div class="cell-content">'+html+'</div>')
-							.attr('data-click', 'false');
-	
-						this.playerTurn = (this.playerTurn == 1) ? 2:1;
-						turnContainer.text('Now '+this.players[this.playerTurn].name+' Turn');
-						this.totalClick ++;
-						this.calculateResult();
-						
-					}
-				})
-				.appendTo(row);
-			}
-		}
 
 		
 		socket.on('game-players', function(data){
@@ -145,18 +98,96 @@ class CorssGame {
 			}
 		});
 	}
+
+	appendBoard(playContainer)
+	{
+		var titleContainer = $("<div/>")
+					.addClass('title-container')
+					.appendTo(playContainer);
+		var turnContainer = $("<div/>")
+							.addClass('turn-container')
+							.appendTo(titleContainer);
+		this.resultContainer = $("<div/>")
+						      .addClass('result-conatiner')
+						      .appendTo(titleContainer);
+
+		var board = $("<div/>")
+					.addClass('board')
+					.appendTo(playContainer);
+		let row ;
+		for (let r=0; r<3; r++) {
+			row = $("<div/>")
+				.addClass('row')
+				.appendTo(board);
+			for (let c=0; c<3; c++) {
+				let cellValue = this.row[r]+c;
+				$("<div/>")
+				.attr({
+					'data-value' : cellValue,
+					'data-click' : 'true'
+				})
+				.addClass('cell')
+				.bind('click',()=>{
+					if ($("div.cell[data-value="+cellValue+"]").attr('data-click') == 'true') {
+						this.playerTurn = playContainer.attr('data-turn');
+						this.totalClick = playContainer.attr('data-click-count');
+						this.players[this.playerTurn].result.push(cellValue);
+
+						
+						this.playerTurn = (this.playerTurn == 0) ? 1:0;
+						turnContainer.text('Now '+this.players[this.playerTurn].name+' Turn');
+						this.totalClick ++;
+						socket.emit('players-result', 
+							{
+								turn : this.playerTurn, 
+								cell : cellValue,
+								totalclick : this.totalClick,
+								result: this.players
+							}
+						);
+						/*
+						
+						
+						
+						this.calculateResult();*/
+						
+					}
+				})
+				.appendTo(row);
+			}
+		}
+		socket.on('game-players-result', (responseData)=>{
+			console.log(responseData);
+			let html = '';
+			let cellValue = responseData.cell;
+			let turn = (responseData.turn == 0) ? 1:0;
+			if (turn == 0) {
+				html = '&#x2716';
+			} else {
+				html = '&#x25EF;';
+			}
+			$("div.cell[data-value="+cellValue+"]")
+			.html('<div class="cell-content">'+html+'</div>')
+			.attr('data-click', 'false');
+
+			playContainer.attr({
+				'data-turn' : responseData.turn,
+				'data-click-count' : responseData.totalclick
+			});
+		})
+	}
 	calculateResult()
 	{
 		if(this.totalClick < $("div.cell").length ) {
-			let player1Result = this.players[1].result;
-			let player2Result = this.players[2].result;
+			let player1Result = this.players[0].result;
+			let player2Result = this.players[1].result;
 			player1Result.sort();
 			player2Result.sort();
 
 			if (this.searchForArray(this.winCombinations, player1Result) > -1) {
-				this.resultContainer.text( this.players[1].name + ' won the game' );
+				this.resultContainer.text( this.players[0].name + ' won the game' );
 			} else if (this.searchForArray(this.winCombinations, player2Result) > -1) {
-				this.resultContainer.text( this.players[2].name + ' won the game' );
+				this.resultContainer.text( this.players[1].name + ' won the game' );
 			}
 
 		} else {
