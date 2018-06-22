@@ -1,14 +1,21 @@
 function searchForArray(haystack, needle){
 	var i, j, current;
-	for(i = 0; i < haystack.length; ++i){
-		if(needle.length === haystack[i].length){
-		  current = haystack[i];
-		  for(j = 0; j < needle.length && needle[j] === current[j]; ++j);
-		  if(j === needle.length)
-		    return i;
+	for(let r of haystack) {
+		if (containsAll(r, needle) == false) 
+		{ 
+			continue; 
+		} else {
+			return true;
 		}
 	}
-	return -1;
+	return false;
+}
+
+function containsAll(needles, haystack){ 
+  for(var i = 0 , len = needles.length; i < len; i++){
+     if($.inArray(needles[i], haystack) == -1) return false;
+  }
+  return true;
 }
 function makeid() {
   var text = "";
@@ -71,10 +78,9 @@ class Board {
 					let totalCell = playContainer.find('.cell').length;
 					if (
 						(currentKey == currentUser['id']) && // check click by  current user or not
-					 	(totalCell > totalHit) &&  // as per game total hit will be 9, check max no of hit
 					 	($("div.cell[data-value="+cellValue+"]").attr('data-click') == 'true') // check the cell is already clicked or not
 					 	) {
-						totalHit ++;
+						//totalHit ++;
 						socket.emit('players-result', 
 							{
 								turn : turn, 
@@ -102,10 +108,11 @@ class Board {
 			$("div.cell[data-value="+cellValue+"]")
 			.html('<div class="cell-content">'+html+'</div>')
 			.attr('data-click', 'false');
+			totalHit = $("div.cell[data-click=false]").length;
 			turn = (turn == 0)? 1:0;
 			let result = this.calculateResult();
 			if (result == false) { // result not declared
-				alert(playerList[turn].name + "'s turn now");
+				//alert(playerList[turn].name + "'s turn now");
 				playContainer.attr({
 					'data-turn' : turn
 				});
@@ -120,18 +127,20 @@ class Board {
 			let player2Result = playerList[1].result;
 			player1Result.sort();
 			player2Result.sort();
-
-			if (searchForArray(this.winCombinations, player1Result) > -1) {
+			if (searchForArray(this.winCombinations, player1Result) == true) {
 				alert( playerList[0].name + ' won the game' );
 				return true;
-			} else if (searchForArray(this.winCombinations, player2Result) > -1) {
+			} else if (searchForArray(this.winCombinations, player2Result) == true) {
 				alert( playerList[1].name + ' won the game' );
 				return true;
+			} else {
+				if (totalHit == $("div.cell").length){
+					alert( 'Match is drawn' );
+					return true;
+				}
+					
 			}
 
-		} else {
-			alert( 'Match is drawn' );
-			return true;
 		}
 		return false;
 	}
