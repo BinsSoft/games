@@ -178,13 +178,16 @@ class CorssGame {
 		let nameInput = $("<input />")
 		.attr({
 			type : 'text',
-			placeholder : 'Enter Name'
+			placeholder : 'Enter Name',
+			class : 'nameInput box1'
 		})
 		.appendTo(playerForm)
+		$("<br/>").appendTo(playerForm)
 		$("<input />")
 		.attr({
 			type : 'button',
-			value : 'Enter'
+			value : 'Enter',
+			class : 'btn-enter'
 		})
 		.bind('click',()=>{
 			let currentUser = {

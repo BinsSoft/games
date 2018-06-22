@@ -13,7 +13,11 @@ body {
     position: relative;
     height: 100vh;
 }
-.play-conatiner {
+.player-conatiner {
+	text-align: center;
+}
+.player-conatiner , .play-conatiner {
+	width: 100%;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -31,8 +35,8 @@ body {
 }
 .cell {
 	display: table-cell;
-    width: 180px;
-    height: 180px;
+    width: 250px;
+    height: 250px;
     position: relative;
     font-weight: bold;
     border-bottom: 10px solid #FFF;
@@ -57,4 +61,18 @@ body {
 }
 .hidden {
 	display: none;
+}
+input.nameInput {
+    width: 80%;
+    padding: 23px;
+    border: none;
+    border-radius: 30px;
+}
+.btn-enter {
+    margin: 16px;
+    width: 200px;
+    padding: 25px;
+    font-size: 25px;
+    border: NONE;
+    border-radius: 50px;
 }
