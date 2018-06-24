@@ -28,7 +28,8 @@ function makeid() {
 }
 var playerList = [];
 var totalHit = 0;
-
+var playMode = 1 ; // 1= single , 2 = multiple
+var cellItemList = [1,2,3,4,5,6,7,8,9];
 class Board {
 	constructor() {
 		this.winCombinations = [
@@ -72,6 +73,7 @@ class Board {
 				})
 				.addClass('cell')
 				.bind('click',()=>{
+
 					let turn = playContainer.attr('data-turn');
 					let currentUser = playerList[turn];
 					let currentKey = playContainer.attr('data-current-key');
@@ -88,16 +90,20 @@ class Board {
 								totalclick : totalHit
 							}
 						);
+						cellItemList.splice(cellItemList.indexOf(cellValue),1);
 					}
+					
 					
 				})
 				.appendTo(row);
 			}
 		}
 		socket.on('game-players-result', (responseData)=>{
+
 			let turn = responseData.turn;
 			let cellValue = responseData.cell;
 			let hitUser = playerList[turn];
+			
 			playerList[turn].result.push(cellValue);
 			let html = '';
 			if (turn == 0) {
@@ -111,11 +117,37 @@ class Board {
 			totalHit = $("div.cell[data-click=false]").length;
 			turn = (turn == 0)? 1:0;
 			let result = this.calculateResult();
-			if (result == false) { // result not declared
+			
+			if (playMode == 1) {
+				if (turn == 1) {
+					setTimeout(()=>{
+						let randomItem = cellItemList[Math.floor(Math.random()*cellItemList.length)];
+						let systemPlayer = playerList.find((p)=>{
+							return (p.type && p.type == 'System')
+						})
+						playContainer.attr('data-current-key',systemPlayer.id);
+
+						$("div.cell:eq("+(randomItem-1)+")").trigger("click");
+					},2000)
+				}
+				else {
+					let humanPlayer = playerList.find((p)=>{
+						return (p.type == undefined)
+					})
+					playContainer.attr('data-current-key',humanPlayer.id);
+				}
+			} 
+			if (result.status == false) { // result not declared
 				//alert(playerList[turn].name + "'s turn now");
 				playContainer.attr({
 					'data-turn' : turn
 				});
+			} else { // result is declared
+				playContainer.empty()
+				playContainer.addClass('hidden');
+				$(".result-container .result-msg").html(result.msg);
+				$(".result-container").removeClass('hidden');
+
 			}
 			
 		})
@@ -128,21 +160,24 @@ class Board {
 			player1Result.sort();
 			player2Result.sort();
 			if (searchForArray(this.winCombinations, player1Result) == true) {
-				alert( playerList[0].name + ' won the game' );
-				return true;
+				let msg = playerList[0].name + ' won the game';
+				if (playMode == 1) {
+					msg =  'You won the game'
+				}
+				return {status : true, msg : msg };
 			} else if (searchForArray(this.winCombinations, player2Result) == true) {
-				alert( playerList[1].name + ' won the game' );
-				return true;
+				
+				return {status : true, msg : playerList[1].name + ' won the game'};
 			} else {
 				if (totalHit == $("div.cell").length){
-					alert( 'Match is drawn' );
-					return true;
+					
+					return {status : true, msg : 'Match is drawn'};
 				}
 					
 			}
 
 		}
-		return false;
+		return {status : false};
 	}
 	
 }
@@ -158,12 +193,31 @@ class CorssGame {
 		this.init()
 	}
 	init(){
+		var initContainer = $("<div/>")
+							.attr({
+								class : 'init-container'
+							})
+							.appendTo(this.selector);
+		var singlePlayerBtn = $("<input />")
+		.attr({
+			type : 'button',
+			value : 'Single Player',
+			class : 'btn btn-enter'
+		}).appendTo(initContainer)
+		var mulitPlayerBtn = $("<input />")
+		.attr({
+			type : 'button',
+			value : 'Multi Player',
+			class : 'btn btn-enter'
+		})
+		.appendTo(initContainer)
 
 		var playerContainer = $("<div/>")
-							.addClass('player-conatiner')
+							.addClass('player-conatiner hidden')
 							.appendTo(this.selector);
 		let playerDisplayContainer = $("<div/>").addClass('player-display-container').appendTo(playerContainer)
 		let turnContainer = $("<div/>").addClass('turn-container').appendTo(playerContainer)
+		
 		var playContainer = $("<div/>")
 							.addClass('play-conatiner hidden')
 							.attr({
@@ -187,7 +241,7 @@ class CorssGame {
 		.attr({
 			type : 'button',
 			value : 'Enter',
-			class : 'btn-enter'
+			class : 'btn btn-enter'
 		})
 		.bind('click',()=>{
 			let currentUser = {
@@ -200,6 +254,30 @@ class CorssGame {
 		})
 		.appendTo(playerForm)
 
+		mulitPlayerBtn.bind("click",()=>{
+			playerContainer.removeClass('hidden');
+			initContainer.addClass('hidden');
+			playMode = 2;
+		});
+		singlePlayerBtn.bind("click", ()=>{
+			playContainer.removeClass('hidden');
+			initContainer.addClass('hidden');
+			playMode = 1;
+			playerList.push({
+				name : 'Me',
+				id : this.currentUserKey,
+				result : [],
+			})
+			playerList.push({
+				name : 'Computer',
+				type : 'System',
+				id : makeid(),
+				result : [],
+			})
+			let board =new Board;
+			board.appendBoard(playContainer)
+
+		})
 		
 		socket.on('game-players', function(data){
 			let turn = playContainer.attr('data-turn');
