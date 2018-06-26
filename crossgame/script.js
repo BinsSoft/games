@@ -27,6 +27,7 @@ function makeid() {
   return text;
 }
 var playerList = [];
+var gamePlayerList = [];
 var totalHit = 0;
 var playMode = 1 ; // 1= single , 2 = multiple
 var cellItemList = [1,2,3,4,5,6,7,8,9];
@@ -78,7 +79,7 @@ class Board {
 				.bind('click',()=>{
 
 					let turn = playContainer.attr('data-turn');
-					let currentUser = playerList[turn];
+					let currentUser = gamePlayerList[turn];
 					let currentKey = playContainer.attr('data-current-key');
 					let totalCell = playContainer.find('.cell').length;
 					if (
@@ -105,9 +106,9 @@ class Board {
 
 			let turn = responseData.turn;
 			let cellValue = responseData.cell;
-			let hitUser = playerList[turn];
+			let hitUser = gamePlayerList[turn];
 			
-			playerList[turn].result.push(cellValue);
+			gamePlayerList[turn].result.push(cellValue);
 			let html = '';
 			if (turn == 0) {
 				html = '&#x2718;';
@@ -125,7 +126,7 @@ class Board {
 				if (turn == 1) {
 					setTimeout(()=>{
 						let randomItem = cellItemList[Math.floor(Math.random()*cellItemList.length)];
-						let systemPlayer = playerList.find((p)=>{
+						let systemPlayer = gamePlayerList.find((p)=>{
 							return (p.type && p.type == 'System')
 						})
 						playContainer.attr('data-current-key',systemPlayer.id);
@@ -134,14 +135,14 @@ class Board {
 					},2000)
 				}
 				else {
-					let humanPlayer = playerList.find((p)=>{
+					let humanPlayer = gamePlayerList.find((p)=>{
 						return (p.type == undefined)
 					})
 					playContainer.attr('data-current-key',humanPlayer.id);
 				}
 			} 
 			if (result.status == false) { // result not declared
-				//alert(playerList[turn].name + "'s turn now");
+				//alert(gamePlayerList[turn].name + "'s turn now");
 				playContainer.attr({
 					'data-turn' : turn
 				});
@@ -150,7 +151,6 @@ class Board {
 				playContainer.addClass('hidden');
 				$(".result-container .result-msg").html(result.msg);
 				$(".result-container").removeClass('hidden');
-
 			}
 			
 		})
@@ -158,19 +158,19 @@ class Board {
 	calculateResult()
 	{
 		if(totalHit <= $("div.cell").length ) {
-			let player1Result = playerList[0].result;
-			let player2Result = playerList[1].result;
+			let player1Result = gamePlayerList[0].result;
+			let player2Result = gamePlayerList[1].result;
 			player1Result.sort();
 			player2Result.sort();
 			if (searchForArray(this.winCombinations, player1Result) == true) {
-				let msg = playerList[0].name + ' won the game';
+				let msg = gamePlayerList[0].name + ' won the game';
 				if (playMode == 1) {
 					msg =  'You won the game'
 				}
 				return {status : true, msg : msg };
 			} else if (searchForArray(this.winCombinations, player2Result) == true) {
 				
-				return {status : true, msg : playerList[1].name + ' won the game'};
+				return {status : true, msg : gamePlayerList[1].name + ' won the game'};
 			} else {
 				if (totalHit == $("div.cell").length){
 					
@@ -243,16 +243,24 @@ class CorssGame {
 		.attr({
 			type : 'button',
 			value : 'Enter',
-			class : 'btn btn-enter'
+			class : 'btn btn-enter',
+			id : "btnNameInput",
+			"data-request" : ""
 		})
-		.bind('click',()=>{
+		.bind('click',(event)=>{
 			currentPlayer = {
 				name : nameInput.val(),
 				id : this.currentUserKey,
 				request: true,
 				result : []
 			};
-			if (playerList.length == 1) {
+			let reqId = $(event.target).attr("data-request");
+			if (reqId != "") {
+				
+				/*let requestUser = playerList.find((p)=>{
+					return p.id == reqId;
+				})*/
+				currentPlayer.requestUser = reqId;
 				currentPlayer.request = false;
 			}
 			socket.emit('players', currentPlayer);
@@ -274,21 +282,22 @@ class CorssGame {
 				id : this.currentUserKey,
 				result : [],
 			};
-			playerList.push(currentPlayer)
-			playerList.push({
+			gamePlayerList.push(currentPlayer)
+			gamePlayerList.push({
 				name : 'Computer',
 				type : 'System',
 				id : makeid(),
 				result : [],
 			})
-			let board =new Board;
+			let board = new Board;
 			board.appendBoard(playContainer)
 
 		})
 		
 		socket.on('game-players', function(data){
-			if(gameOn == false) {
+			if(gameOn == false ) {
 				playerList.push(data);
+
 				let currentKey = playContainer.attr('data-current-key');
 				let html = "";
 				if (data.request != undefined) {
@@ -314,15 +323,21 @@ class CorssGame {
 							$("<button />")
 							.text("Yes")
 							.attr({
-								class : "btn btn-confirm"
+								"class" : "btn btn-confirm",
+								"data-request" : data.id
 							})
 							.bind("click", ()=>{
-								if(playerList[0].request == undefined) {
+								let reqId = data.id;
+								let requestUser = playerList.find((p)=>{
+									return p.id == reqId;
+								})
+								if(requestUser && requestUser.request == undefined) {
 									$(".alert-container")
-									//.html("Sorry, "+playerList[0])
+									.html("Sorry, "+requestUser.name+" is busy now")
 									.removeClass('hidden')
 									$(".notification-container").addClass("hidden");
 								} else {
+									$("#btnNameInput").attr("data-request", reqId);
 									initContainer.addClass("hidden");
 									playerContainer.removeClass("hidden");
 									playerForm.removeClass("hidden");
@@ -344,8 +359,17 @@ class CorssGame {
 							.removeClass('hidden');
 						}
 						
-					} else if(data.request == false && data.id == currentKey) {
+					} else if(data.request == false ) {
+						let requestSendUserId = data.requestUser;
+						requestSendUserId = playerList.findIndex((p)=>{
+							return p.id  == requestSendUserId
+						})
+						let requestAcceptUserId = data.id;
+						requestAcceptUserId = playerList.findIndex((p)=>{
+							return p.id  == requestAcceptUserId
+						})
 						if (data.id  != currentKey) {
+
 							html = `
 									<p>We find your opponent.</p><p>`+data.name+` will play with you</p>
 									<p>You will start The game</p>
@@ -354,8 +378,10 @@ class CorssGame {
 							$(".player-display-container")
 							.html(html);
 						} else {
+							
+							let requestUser = playerList[requestSendUserId];
 							html = `
-									<p>`+playerList[0].name+` will start The game</p>
+									<p>`+requestUser.name+` will start The game</p>
 									<p>Please wait game starts shortly</p>
 									`;
 							$(".player-display-container")
@@ -368,10 +394,12 @@ class CorssGame {
 							board.appendBoard(playContainer);
 							playContainer.removeClass('hidden');
 							$(".player-display-container").addClass("hidden");
-							for (let p in playerList) {
-								delete playerList[p]['request'];
-							}
-							socket.emit('players-engage', playerList[0].id);
+							delete playerList[requestSendUserId]['request'];
+							delete playerList[requestAcceptUserId]['request'];
+							gamePlayerList.push(playerList[requestSendUserId]);
+							gamePlayerList.push(playerList[requestAcceptUserId]);
+
+							socket.emit('players-engage', playerList[requestAcceptUserId].id);
 							gameOn = true;
 						},2000)
 					}
@@ -382,7 +410,7 @@ class CorssGame {
 			let requestUser = playerList.findIndex((p)=>{
 				return p.id == data;
 			})
-			if(playerList[requestUser]['request'] != undefined) {
+			if(requestUser && playerList[requestUser] && playerList[requestUser]['request'] != undefined) {
 				delete playerList[requestUser]['request'];
 			}
 		})
