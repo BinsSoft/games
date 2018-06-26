@@ -390,17 +390,19 @@ class CorssGame {
 						}
 		
 						setTimeout(()=>{
-							let board =new Board;
-							board.appendBoard(playContainer);
-							playContainer.removeClass('hidden');
-							$(".player-display-container").addClass("hidden");
-							delete playerList[requestSendUserId]['request'];
-							delete playerList[requestAcceptUserId]['request'];
-							gamePlayerList.push(playerList[requestSendUserId]);
-							gamePlayerList.push(playerList[requestAcceptUserId]);
-
-							socket.emit('players-engage', playerList[requestAcceptUserId].id);
-							gameOn = true;
+							if (requestAcceptUserId == currentPlayer.id || requestSendUserId == currentPlayer.id) {
+								let board =new Board;
+								board.appendBoard(playContainer);
+								playContainer.removeClass('hidden');
+								$(".player-display-container").addClass("hidden");
+								delete playerList[requestSendUserId]['request'];
+								delete playerList[requestAcceptUserId]['request'];
+								gamePlayerList.push(playerList[requestSendUserId]);
+								gamePlayerList.push(playerList[requestAcceptUserId]);
+	
+								socket.emit('players-engage', playerList[requestAcceptUserId].id);
+								gameOn = true;
+							}
 						},2000)
 					}
 				}

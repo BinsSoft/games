@@ -35,7 +35,7 @@ body {
 .player-conatiner {
 	text-align: center;
 }
-.player-display-container {
+.player-display-container, .result-container {
     background: rgba(110, 110, 110, 0.5);
     border-radius: 5px;
     padding: 5px;
