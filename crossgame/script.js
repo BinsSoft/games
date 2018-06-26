@@ -389,8 +389,9 @@ class CorssGame {
 							.html(html);
 						}
 		
-						setTimeout(()=>{
-							if (requestAcceptUserId == currentPlayer.id || requestSendUserId == currentPlayer.id) {
+						
+						if (requestAcceptUserId == currentPlayer.id || requestSendUserId == currentPlayer.id) {
+							setTimeout(()=>{
 								let board =new Board;
 								board.appendBoard(playContainer);
 								playContainer.removeClass('hidden');
@@ -402,8 +403,9 @@ class CorssGame {
 	
 								socket.emit('players-engage', playerList[requestAcceptUserId].id);
 								gameOn = true;
-							}
-						},2000)
+
+							},2000)
+						}
 					}
 				}
 			}
