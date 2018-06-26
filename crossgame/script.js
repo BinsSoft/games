@@ -317,10 +317,17 @@ class CorssGame {
 								class : "btn btn-confirm"
 							})
 							.bind("click", ()=>{
-								initContainer.addClass("hidden");
-								playerContainer.removeClass("hidden");
-								playerForm.removeClass("hidden");
-								$(".notification-container").addClass("hidden");
+								if(playerList[0].request == undefined) {
+									$(".alert-container")
+									//.html("Sorry, "+playerList[0])
+									.removeClass('hidden')
+									$(".notification-container").addClass("hidden");
+								} else {
+									initContainer.addClass("hidden");
+									playerContainer.removeClass("hidden");
+									playerForm.removeClass("hidden");
+									$(".notification-container").addClass("hidden");
+								}
 							})
 							.appendTo(btnPanel)
 							$("<button />")
@@ -337,7 +344,7 @@ class CorssGame {
 							.removeClass('hidden');
 						}
 						
-					} else if(data.request == false) {
+					} else if(data.request == false && data.id == currentKey) {
 						if (data.id  != currentKey) {
 							html = `
 									<p>We find your opponent.</p><p>`+data.name+` will play with you</p>
