@@ -30,6 +30,9 @@ var playerList = [];
 var totalHit = 0;
 var playMode = 1 ; // 1= single , 2 = multiple
 var cellItemList = [1,2,3,4,5,6,7,8,9];
+var currentPlayer = {};
+var gameOn = false;
+var playerContainer , initContainer;
 class Board {
 	constructor() {
 		this.winCombinations = [
@@ -107,7 +110,7 @@ class Board {
 			playerList[turn].result.push(cellValue);
 			let html = '';
 			if (turn == 0) {
-				html = '&#x2716';
+				html = '&#x2718;';
 			} else {
 				html = '&#x25EF;';
 			}
@@ -193,7 +196,7 @@ class CorssGame {
 		this.init()
 	}
 	init(){
-		var initContainer = $("<div/>")
+		initContainer = $("<div/>")
 							.attr({
 								class : 'init-container'
 							})
@@ -212,10 +215,9 @@ class CorssGame {
 		})
 		.appendTo(initContainer)
 
-		var playerContainer = $("<div/>")
+		playerContainer = $("<div/>")
 							.addClass('player-conatiner hidden')
 							.appendTo(this.selector);
-		let playerDisplayContainer = $("<div/>").addClass('player-display-container').appendTo(playerContainer)
 		let turnContainer = $("<div/>").addClass('turn-container').appendTo(playerContainer)
 		
 		var playContainer = $("<div/>")
@@ -244,12 +246,16 @@ class CorssGame {
 			class : 'btn btn-enter'
 		})
 		.bind('click',()=>{
-			let currentUser = {
+			currentPlayer = {
 				name : nameInput.val(),
 				id : this.currentUserKey,
+				request: true,
 				result : []
 			};
-			socket.emit('players', currentUser);
+			if (playerList.length == 1) {
+				currentPlayer.request = false;
+			}
+			socket.emit('players', currentPlayer);
 			playerForm.addClass('hidden');
 		})
 		.appendTo(playerForm)
@@ -263,11 +269,12 @@ class CorssGame {
 			playContainer.removeClass('hidden');
 			initContainer.addClass('hidden');
 			playMode = 1;
-			playerList.push({
+			currentPlayer = {
 				name : 'Me',
 				id : this.currentUserKey,
 				result : [],
-			})
+			};
+			playerList.push(currentPlayer)
 			playerList.push({
 				name : 'Computer',
 				type : 'System',
@@ -280,25 +287,98 @@ class CorssGame {
 		})
 		
 		socket.on('game-players', function(data){
-			let turn = playContainer.attr('data-turn');
-			playerDisplayContainer.empty();
-			playerList.push(data);
-			for (let p of playerList) {
-				$("<p/>")
-				.attr({
-					"data-name" : p.name
-				})
-				.html("<strong>Player :</strong>"+p.name)
-				.appendTo(playerDisplayContainer);
-			}
-			if (playerList.length == 2) {
-				let board =new Board;
-				board.appendBoard(playContainer)
-				playContainer.removeClass('hidden');
-				alert("Now Game will be started");
-				alert(playerList[turn].name + "'s turn now");
+			if(gameOn == false) {
+				playerList.push(data);
+				let currentKey = playContainer.attr('data-current-key');
+				let html = "";
+				if (data.request != undefined) {
+					if (data.request == true) {
+						if (data.id  == currentKey) {
+							html = `
+									<p>Hi `+data.name+`</p>
+									<p>Please wait, we are searching your opponent.</p>
+									`;
+							$(".player-display-container")
+							.removeClass('hidden')
+							.html(html);
+							currentPlayer['status'] = 'game-request';
+						} else {
+							$("<p/>")
+							.text("Hi,")
+							.appendTo($(".notification-container"));
+							$("<p/>")
+							.text(data.name+` wants to play, are you want?`)
+							.appendTo($(".notification-container"));
+							let btnPanel = $("<p/>")
+							.appendTo($(".notification-container"));
+							$("<button />")
+							.text("Yes")
+							.attr({
+								class : "btn btn-confirm"
+							})
+							.bind("click", ()=>{
+								initContainer.addClass("hidden");
+								playerContainer.removeClass("hidden");
+								playerForm.removeClass("hidden");
+								$(".notification-container").addClass("hidden");
+							})
+							.appendTo(btnPanel)
+							$("<button />")
+							.text("No")
+							.attr({
+								class : "btn btn-confirm"
+							})
+							.bind("click", ()=>{
+								$(".notification-container").addClass("hidden");
+							})
+							.appendTo(btnPanel)
+							
+							$(".notification-container")
+							.removeClass('hidden');
+						}
+						
+					} else if(data.request == false) {
+						if (data.id  != currentKey) {
+							html = `
+									<p>We find your opponent.</p><p>`+data.name+` will play with you</p>
+									<p>You will start The game</p>
+									<p>Please wait game starts shortly</p>
+									`;
+							$(".player-display-container")
+							.html(html);
+						} else {
+							html = `
+									<p>`+playerList[0].name+` will start The game</p>
+									<p>Please wait game starts shortly</p>
+									`;
+							$(".player-display-container")
+							.removeClass('hidden')
+							.html(html);
+						}
+		
+						setTimeout(()=>{
+							let board =new Board;
+							board.appendBoard(playContainer);
+							playContainer.removeClass('hidden');
+							$(".player-display-container").addClass("hidden");
+							for (let p in playerList) {
+								delete playerList[p]['request'];
+							}
+							socket.emit('players-engage', playerList[0].id);
+							gameOn = true;
+						},2000)
+					}
+				}
 			}
 		});
+		socket.on("players-engage-result", (data)=>{
+			let requestUser = playerList.findIndex((p)=>{
+				return p.id == data;
+			})
+			if(playerList[requestUser]['request'] != undefined) {
+				delete playerList[requestUser]['request'];
+			}
+		})
 	}
 
 	
@@ -307,4 +387,5 @@ class CorssGame {
 
 $(()=>{
 	let corss = new CorssGame(".cross-game-container");
+
 })

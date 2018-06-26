@@ -16,7 +16,17 @@ body {
     margin: 0;
 	
 }
-
+.notification-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(110, 110, 110, 0.5);
+    color: #FFF;
+    font-family: '5yearsoldfont';
+    text-align: center;
+    z-index: 999;
+}
 .cross-game-container {
 	width: 100%;
     position: relative;
@@ -25,19 +35,21 @@ body {
 .player-conatiner {
 	text-align: center;
 }
-.player-conatiner , .play-conatiner, .result-container, .init-container {
+.player-display-container {
+    background: rgba(110, 110, 110, 0.5);
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 25px;
+    color: #FFF;
+}
+.player-conatiner , .play-conatiner, .result-container, .init-container, .player-display-container {
 	text-align: center;
 	width: 50%;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%,-50%);
-    
-     /*font-family: 'Patrick Hand SC', cursive;
-      border-right :solid 7px #FFF;
-      border-left :solid 7px #FFF;
-      background: transparent;
-    border-radius: 30px 25px 50px 25px/25px 100px 25px 265px;*/
+    font-family: '5yearsoldfont';
 
 }
 .result-container {
@@ -100,5 +112,11 @@ input.nameInput {
     font-size: 25px;
     border: NONE;
     border-radius: 50px;
-     font-family: '5yearsoldfont';
+    font-family: '5yearsoldfont';
+    background: rgba(255,255,255,0.5);
+    color: #222;
+    text-decoration: none;
+}
+.btn.btn-confirm {
+    padding: 5px;
 }
