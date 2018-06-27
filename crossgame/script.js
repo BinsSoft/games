@@ -97,6 +97,15 @@ class Board {
 							}
 						);
 						cellItemList.splice(cellItemList.indexOf(cellValue),1);
+						setTimeout(()=>{
+							let newKey = playContainer.attr('data-current-key');
+							if (newKey == currentUser['id']) {
+								playContainer.empty()
+								playContainer.addClass('hidden');
+								$(".result-container").removeClass('hidden');
+								$(".result-container .result-msg").html("<img src='thumbs-up.png' width='300' /><br/>Opponent left the game, You win");	
+							}
+						},30000);
 					}
 					
 					
