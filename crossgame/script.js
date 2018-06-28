@@ -87,25 +87,39 @@ class Board {
 						(currentKey == currentUser['id']) && // check click by  current user or not
 					 	($("div.cell[data-value="+cellValue+"]").attr('data-click') == 'true') // check the cell is already clicked or not
 					 	) {
-						//totalHit ++;
-						socket.emit('players-result', 
-							{
-								turn : turn, 
-								cell : cellValue,
-								totalclick : totalHit,
-								gameId : gameId
+						let inputObj = {
+									turn : turn, 
+									cell : cellValue,
+									totalclick : totalHit,
+									gameId : gameId
+								};
+						if (playMode == 1) {
+							if (turn == 0) {
+								setTimeout(()=>{
+									let randomItem = cellItemList[Math.floor(Math.random()*cellItemList.length)];
+									let systemPlayer = gamePlayerList.find((p)=>{
+										return (p.type && p.type == 'System')
+									})
+									playContainer.attr('data-current-key',systemPlayer.id);
+
+									$("div.cell:eq("+(randomItem-1)+")").trigger("click");
+								},2000)
 							}
-						);
+							else {
+								let humanPlayer = gamePlayerList.find((p)=>{
+									return (p.type == undefined)
+								})
+								playContainer.attr('data-current-key',humanPlayer.id);
+							}
+							//console.log(playContainer);
+							this.defineResult(playContainer, inputObj);
+
+						} else {
+							socket.emit('players-result', inputObj);
+						}
+						
 						cellItemList.splice(cellItemList.indexOf(cellValue),1);
-						setTimeout(()=>{
-							let newKey = playContainer.attr('data-current-key');
-							if (newKey == currentUser['id']) {
-								playContainer.empty()
-								playContainer.addClass('hidden');
-								$(".result-container").removeClass('hidden');
-								$(".result-container .result-msg").html("<img src='thumbs-up.png' width='300' /><br/>Opponent left the game, You win");	
-							}
-						},30000);
+
 					}
 					
 					
@@ -114,65 +128,59 @@ class Board {
 			}
 		}
 		socket.on('game-players-result', (responseData)=>{
-
-			let turn = responseData.turn;
-			let cellValue = responseData.cell;
-			let hitUser = gamePlayerList[turn];
+			this.defineResult(playContainer, responseData);
+		
+			// setTimeout(()=>{
+			// 	let newKey = playContainer.attr('data-current-key');
+			// 	if (newKey == response.hitUser['id']) {
+			// 		playContainer.empty()
+			// 		playContainer.addClass('hidden');
+			// 		$(".result-container").removeClass('hidden');
+			// 		$(".result-container .result-msg").html("<img src='thumbs-up.png' width='300' /><br/>Opponent left the game, You win");	
+			// 	}
+			// },5000);
 			
-			gamePlayerList[turn].result.push(cellValue);
-			let html = '';
-			if (turn == 0) {
-				html = '&#x2718;';
-			} else {
-				html = '&#x25EF;';
-			}
-			$("div.cell[data-value="+cellValue+"]")
-			.html('<div class="cell-content">'+html+'</div>')
-			.attr('data-click', 'false');
-			totalHit = $("div.cell[data-click=false]").length;
-			turn = (turn == 0)? 1:0;
-			let result = this.calculateResult();
-			if (playMode == 1) {
-				if (turn == 1) {
-					setTimeout(()=>{
-						let randomItem = cellItemList[Math.floor(Math.random()*cellItemList.length)];
-						let systemPlayer = gamePlayerList.find((p)=>{
-							return (p.type && p.type == 'System')
-						})
-						playContainer.attr('data-current-key',systemPlayer.id);
-
-						$("div.cell:eq("+(randomItem-1)+")").trigger("click");
-					},2000)
-				}
-				else {
-					let humanPlayer = gamePlayerList.find((p)=>{
-						return (p.type == undefined)
-					})
-					playContainer.attr('data-current-key',humanPlayer.id);
-				}
-			} 
-			if (result.status == false) { // result not declared
-				//alert(gamePlayerList[turn].name + "'s turn now");
-				playContainer.attr({
-					'data-turn' : turn
-				});
-			} else { // result is declared
-				playContainer.empty()
-				playContainer.addClass('hidden');
-				if (result.winUser == null ) {
-					$(".result-container .result-msg").html("<img src='shake-hands.png' width='300' /><br/>"+result.msg);	
-				} else {
-					if (result.winUser.id == currentPlayer.id) {
-						$(".result-container .result-msg").html("<img src='thumbs-up.png' width='300' /><br/>"+result.msg);	
-					} else {
-						$(".result-container .result-msg").html("<img src='thumbs-down.png' width='300' /><br/>"+result.msg);	
-					}
-				}
-				
-				$(".result-container").removeClass('hidden');
-			}
 			
 		})
+	}
+	defineResult(playContainer, responseData)
+	{
+		let turn = responseData.turn;
+		let cellValue = responseData.cell;
+		let hitUser = gamePlayerList[turn];
+		
+		gamePlayerList[turn].result.push(cellValue);
+		let html = '';
+		if (turn == 0) {
+			html = '&#x2718;';
+		} else {
+			html = '&#x25EF;';
+		}
+		$("div.cell[data-value="+cellValue+"]")
+		.html('<div class="cell-content">'+html+'</div>')
+		.attr('data-click', 'false');
+		totalHit = $("div.cell[data-click=false]").length;
+		turn = (turn == 0)? 1:0;
+		let result = this.calculateResult();
+		if (result.status == false) { // result not declared
+			playContainer.attr({
+				'data-turn' : turn
+			});
+		} else { // result is declared
+			playContainer.empty()
+			playContainer.addClass('hidden');
+			if (result.winUser == null ) {
+				$(".result-container .result-msg").html("<img src='shake-hands.png' width='300' /><br/>"+result.msg);	
+			} else {
+				if (result.winUser.id == currentPlayer.id) {
+					$(".result-container .result-msg").html("<img src='thumbs-up.png' width='300' /><br/>"+result.msg);	
+				} else {
+					$(".result-container .result-msg").html("<img src='thumbs-down.png' width='300' /><br/>"+result.msg);	
+				}
+			}
+			
+			$(".result-container").removeClass('hidden');
+		}
 	}
 	calculateResult()
 	{
@@ -234,9 +242,8 @@ class CorssGame {
 		})
 		.appendTo(initContainer)
 
-		playerContainer = $("<div/>")
-							.addClass('player-conatiner hidden')
-							.appendTo(this.selector);
+		playerContainer = $(".player-conatiner");
+
 		let turnContainer = $("<div/>").addClass('turn-container').appendTo(playerContainer)
 		
 		var playContainer = $("<div/>")
@@ -267,7 +274,7 @@ class CorssGame {
 			"data-request" : ""
 		})
 		.bind('click',(event)=>{
-			gameId = makeid();
+			
 			currentPlayer = {
 				name : nameInput.val(),
 				id : this.currentUserKey,
@@ -298,23 +305,30 @@ class CorssGame {
 			playerContainer.removeClass('hidden');
 			initContainer.addClass('hidden');
 			playMode = 2;
+			gameId = makeid();
 		});
 		singlePlayerBtn.bind("click", ()=>{
 			playContainer.removeClass('hidden');
 			initContainer.addClass('hidden');
 			playMode = 1;
+			gameId = makeid();
 			currentPlayer = {
 				name : 'Me',
 				id : this.currentUserKey,
+				request: true,
+				gameId :gameId,
 				result : [],
 			};
 			gamePlayerList.push(currentPlayer)
-			gamePlayerList.push({
+			let systemPlayer  = {
 				name : 'Computer',
 				type : 'System',
 				id : makeid(),
+				request: false,
+				gameId :gameId,
 				result : [],
-			})
+			};
+			gamePlayerList.push(systemPlayer);
 			let board = new Board;
 			board.appendBoard(playContainer)
 
@@ -338,6 +352,7 @@ class CorssGame {
 							.html(html);
 							//currentPlayer['status'] = 'game-request';
 						} else {
+							$(".notification-container").empty()
 							$("<p/>")
 							.text("Hi,")
 							.appendTo($(".notification-container"));
@@ -419,7 +434,6 @@ class CorssGame {
 							.removeClass('hidden')
 							.html(html);
 						}
-		
 						if (playerList[requestSendUserId].id == currentPlayer.id || playerList[requestAcceptUserId].id == currentPlayer.id) {
 							setTimeout(()=>{
 								let board =new Board;

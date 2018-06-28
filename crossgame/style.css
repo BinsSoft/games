@@ -42,9 +42,10 @@ body {
     font-size: 25px;
     color: #FFF;
 }
+
 .player-conatiner , .play-conatiner, .result-container, .init-container, .player-display-container {
 	text-align: center;
-	width: 50%;
+	width: 67%;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -52,6 +53,7 @@ body {
     font-family: '5yearsoldfont';
 
 }
+
 .result-container {
     font-size: 25px;
     color: #FFFF;
@@ -69,8 +71,8 @@ body {
 }
 .cell {
 	display: table-cell;
-    width: 250px;
-    height: 250px;
+    width: 130px;
+       height: 130px;
     position: relative;
     font-weight: bold;
 
@@ -85,6 +87,12 @@ body {
 }
 .cell[data-click=false] {
 	/*background: #CCC;*/
+}
+@media only screen and (max-width: 411px) {
+   .cell {
+       width: 150px;
+       height: 100px;
+    }
 }
 .cell-content {
 	position: absolute;
