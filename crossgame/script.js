@@ -52,15 +52,9 @@ class Board {
 	{
 		var rows = [1,4,7];
 		var titleContainer = $("<div/>")
-					.addClass('title-container')
+					.addClass('title-container hidden')
 					.appendTo(playContainer);
-		var turnContainer = $("<div/>")
-							.addClass('turn-container')
-							.appendTo(titleContainer);
-		this.resultContainer = $("<div/>")
-						      .addClass('result-conatiner')
-						      .appendTo(titleContainer);
-
+		
 		var board = $("<div/>")
 					.addClass('board')
 					.appendTo(playContainer);
@@ -161,26 +155,44 @@ class Board {
 		.attr('data-click', 'false');
 		totalHit = $("div.cell[data-click=false]").length;
 		turn = (turn == 0)? 1:0;
+		
 		let result = this.calculateResult();
+
 		if (result.status == false) { // result not declared
+			this.displayTurnContainer(turn);
 			playContainer.attr({
 				'data-turn' : turn
 			});
 		} else { // result is declared
-			playContainer.empty()
-			playContainer.addClass('hidden');
-			if (result.winUser == null ) {
-				$(".result-container .result-msg").html("<img src='shake-hands.png' width='300' /><br/>"+result.msg);	
-			} else {
-				if (result.winUser.id == currentPlayer.id) {
-					$(".result-container .result-msg").html("<img src='thumbs-up.png' width='300' /><br/>"+result.msg);	
+			setTimeout(()=>{
+				playContainer.empty()
+				playContainer.addClass('hidden');
+				if (result.winUser == null ) {
+					$(".result-container .result-msg").html("<img src='shake-hands.png' width='300' /><br/>"+result.msg);	
 				} else {
-					$(".result-container .result-msg").html("<img src='thumbs-down.png' width='300' /><br/>"+result.msg);	
+					if (result.winUser.id == currentPlayer.id) {
+						$(".result-container .result-msg").html("<img src='thumbs-up.png' width='300' /><br/>"+result.msg);	
+					} else {
+						$(".result-container .result-msg").html("<img src='thumbs-down.png' width='300' /><br/>"+result.msg);	
+					}
 				}
-			}
-			
-			$(".result-container").removeClass('hidden');
+				
+				$(".result-container").removeClass('hidden');
+			},2000)
 		}
+	}
+	displayTurnContainer(turn) {
+		let text = '';
+		if (gamePlayerList[turn].id == currentPlayer.id) {
+			text = "Now your's turn";
+		} else {
+			text = "Now "+gamePlayerList[turn].name+"'s turns";
+		}
+		$(".turn-conatiner .turn-container-text").text(text);
+		$(".turn-conatiner").removeClass('hidden');
+		setTimeout(()=>{
+			$(".turn-conatiner").addClass('hidden');
+		},1000)
 	}
 	calculateResult()
 	{
@@ -244,7 +256,6 @@ class CorssGame {
 
 		playerContainer = $(".player-conatiner");
 
-		let turnContainer = $("<div/>").addClass('turn-container').appendTo(playerContainer)
 		
 		var playContainer = $("<div/>")
 							.addClass('play-conatiner hidden')
@@ -254,6 +265,11 @@ class CorssGame {
 								'data-current-key' : this.currentUserKey,
 							})
 							.appendTo(this.selector);
+		let crossLineContainer = $("<div/>")
+								 .attr({
+								 	class : 'cross-line'
+								 })
+								 .appendTo(playContainer)
 		let playerForm = $("<div/>")
 						.addClass('player-form')
 						.appendTo(playerContainer);
@@ -274,30 +290,33 @@ class CorssGame {
 			"data-request" : ""
 		})
 		.bind('click',(event)=>{
-			
-			currentPlayer = {
-				name : nameInput.val(),
-				id : this.currentUserKey,
-				request: true,
-				gameId :gameId,
-				result : []
-			};
-			let reqId = $(event.target).attr("data-request");
-			let preDefinedGameId = $(event.target).attr("data-game");
-			if (reqId != "") {
-				
-				/*let requestUser = playerList.find((p)=>{
-					return p.id == reqId;
-				})*/
-				currentPlayer.requestUser = reqId;
-				currentPlayer.request = false;
-				if (preDefinedGameId) {
-					currentPlayer.gameId = gameId = preDefinedGameId;
+			let name = nameInput.val();
+			if (name != '') {
+				currentPlayer = {
+					name : name,
+					id : this.currentUserKey,
+					request: true,
+					gameId :gameId,
+					result : []
+				};
+				let reqId = $(event.target).attr("data-request");
+				let preDefinedGameId = $(event.target).attr("data-game");
+				if (reqId != "") {
+					
+					/*let requestUser = playerList.find((p)=>{
+						return p.id == reqId;
+					})*/
+					currentPlayer.requestUser = reqId;
+					currentPlayer.request = false;
+					if (preDefinedGameId) {
+						currentPlayer.gameId = gameId = preDefinedGameId;
+					}
 				}
+				socket.emit('players', currentPlayer);
+				playerForm.addClass('hidden');
+				playMode = 2;
 			}
-			socket.emit('players', currentPlayer);
-			playerForm.addClass('hidden');
-			playMode = 2;
+			
 		})
 		.appendTo(playerForm)
 

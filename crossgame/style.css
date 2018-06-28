@@ -43,7 +43,7 @@ body {
     color: #FFF;
 }
 
-.player-conatiner , .play-conatiner, .result-container, .init-container, .player-display-container {
+.player-conatiner , .play-conatiner, .result-container, .init-container, .player-display-container, .turn-conatiner {
 	text-align: center;
 	width: 67%;
     position: absolute;
@@ -53,7 +53,19 @@ body {
     font-family: '5yearsoldfont';
 
 }
-
+.turn-conatiner {
+    background: rgba(255,255,255,0.5);
+    z-index: 999;
+    height: 340px;
+    font-weight: bold;
+    font-size: 30px;
+}
+.turn-container-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
 .result-container {
     font-size: 25px;
     color: #FFFF;
@@ -88,12 +100,10 @@ body {
 .cell[data-click=false] {
 	/*background: #CCC;*/
 }
-@media only screen and (max-width: 411px) {
-   .cell {
-       width: 150px;
-       height: 100px;
-    }
+img {
+    width: 150px;
 }
+
 .cell-content {
 	position: absolute;
 	top: 50%;
@@ -127,4 +137,21 @@ input.nameInput {
 }
 .btn.btn-confirm {
     padding: 5px;
+}
+@media only screen and (max-width: 411px) {
+   .cell {
+       width: 150px;
+       height: 100px;
+    }
+    .btn {
+        padding: 12px;
+        font-size: 20px;
+    }
+    input.nameInput {
+        width: 92%;
+        padding: 12px;
+    }
+    .cell-content {
+        font-size: 45px;
+    }
 }
