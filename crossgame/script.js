@@ -548,6 +548,7 @@ class CorssGame {
 		setTimeout(()=>{ // toss happend
 			tossContent.empty();
 			let tossIndex = Math.floor(Math.random()*tossArr.length);
+			let winPlayer = gamePlayerList[tossIndex];
 			let tossMsg = gamePlayerList[tossIndex].name+' wins the toss and starts the game';
 			if(currentPlayer.id == gamePlayerList[tossIndex].id) {
 				tossMsg = 'You win the toss and start the game';
@@ -561,12 +562,11 @@ class CorssGame {
 				.fadeOut();
 				let playContainer = $(".play-conatiner");
 				playContainer.attr('data-turn',tossIndex);
-				playContainer.attr('data-current-key',gamePlayerList[tossIndex].id);
-
+				playContainer.attr('data-current-key',winPlayer.id);
 				let board = new Board;
 				board.appendBoard(playContainer);
 				playContainer.fadeIn(300);
-				if(playMode == 1) { // only for single player 
+				if(playMode == 1 && tossIndex == 1) { // only for single player 
 					Board.playBySystem();
 				}
 			},5000)
