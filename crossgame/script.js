@@ -95,11 +95,12 @@ class Board {
 				.bind('click',()=>{
 
 					let turn = playContainer.attr('data-turn');
-					let currentUser = gamePlayerList[turn];
+					
 					let currentKey = playContainer.attr('data-current-key');
 					let totalCell = playContainer.find('.cell').length;
+					
 					if (
-						(currentKey == currentUser['id']) && // check click by  current user or not
+						(currentKey == currentPlayer['id'] || gamePlayerList[turn].type == 'System' ) && // check click by  current user or not
 					 	($("div.cell[data-value="+cellValue+"]").attr('data-click') == 'true') // check the cell is already clicked or not
 					 	) {
 						let inputObj = {
@@ -111,7 +112,7 @@ class Board {
 						if (playMode == 1) {
 							if (turn == 0) {
 								setTimeout(()=>{
-									Board.playBySystem()
+									Board.playBySystem()	
 								},3000)
 							}
 							else {
