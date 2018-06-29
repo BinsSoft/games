@@ -1,4 +1,4 @@
-function searchForArray(haystack, needle){
+const searchForArray = (haystack, needle) => {
 	var i, j, current;
 	for(let r of haystack) {
 		if (containsAll(r, needle) == false) 
@@ -11,13 +11,13 @@ function searchForArray(haystack, needle){
 	return false;
 }
 
-function containsAll(needles, haystack){ 
+const containsAll = (needles, haystack) =>{ 
   for(var i = 0 , len = needles.length; i < len; i++){
      if($.inArray(needles[i], haystack) == -1) return false;
   }
   return true;
 }
-function makeid() {
+const makeid = ()=>{
   var text = "";
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -38,7 +38,7 @@ const icons = {
 	success : "thumbs-up.png",
 	fail : "thumbs-down.png",
 	draw : "shake-hands.png",
-	toss : 'toss.gif'
+	toss : "toss.gif"
 }
 const audios = {
 	success : '../sounds/win.wav',
@@ -47,6 +47,8 @@ const audios = {
 const tossArr = ['head', 'tail'];
 
 var playerContainer , initContainer;
+
+
 class Board {
 	constructor() {
 		this.winCombinations = [
@@ -59,6 +61,16 @@ class Board {
 			[1,5,9],
 			[3,5,7]
 		];
+	}
+	static playBySystem(){
+		let randomItem = cellItemList[Math.floor(Math.random()*cellItemList.length)];
+		let systemPlayer = gamePlayerList.find((p)=>{
+			return (p.type && p.type == 'System')
+		})
+		let playContainer = $(".play-conatiner");
+		playContainer.attr('data-current-key',systemPlayer.id);
+
+		$("div.cell:eq("+(randomItem-1)+")").trigger("click");
 	}
 	appendBoard(playContainer)
 	{
@@ -89,6 +101,7 @@ class Board {
 					let currentUser = gamePlayerList[turn];
 					let currentKey = playContainer.attr('data-current-key');
 					let totalCell = playContainer.find('.cell').length;
+					console.log(currentKey +"=="+ currentUser['id'])
 					if (
 						(currentKey == currentUser['id']) && // check click by  current user or not
 					 	($("div.cell[data-value="+cellValue+"]").attr('data-click') == 'true') // check the cell is already clicked or not
@@ -102,13 +115,7 @@ class Board {
 						if (playMode == 1) {
 							if (turn == 0) {
 								setTimeout(()=>{
-									let randomItem = cellItemList[Math.floor(Math.random()*cellItemList.length)];
-									let systemPlayer = gamePlayerList.find((p)=>{
-										return (p.type && p.type == 'System')
-									})
-									playContainer.attr('data-current-key',systemPlayer.id);
-
-									$("div.cell:eq("+(randomItem-1)+")").trigger("click");
+									Board.playBySystem()
 								},3000)
 							}
 							else {
@@ -371,8 +378,7 @@ class CorssGame {
 				result : [],
 			};
 			gamePlayerList.push(systemPlayer);
-			let board = new Board;
-			board.appendBoard(playContainer)
+			CorssGame.buildToss();
 
 		})
 		
@@ -500,46 +506,7 @@ class CorssGame {
 	
 								socket.emit('players-engage', playerList[requestAcceptUserId].id);
 								gameOn = true;
-
-								/* toss component*/
-								$(".toss-container")
-								.removeClass('hidden')
-								let tossContent = $(".toss-container .toss-content");
-								$("<p/>")
-								.html(
-									playerList[requestSendUserId].name +` is Head <br/>`+
-									playerList[requestAcceptUserId].name +` is Tail
-									`)
-								.appendTo(tossContent)
-								$("<img/>")
-								.attr({
-									src : icons.toss,
-									class : 'toss-img'
-								})
-								.appendTo(tossContent);
-								setTimeout(()=>{ // toss happend
-									tossContent.empty();
-									let tossIndex = Math.floor(Math.random()*tossArr.length);
-									$("<p/>")
-									.html(gamePlayerList[tossIndex].name +" won the toss.<br/> "+gamePlayerList[tossIndex].name+" start the game")
-									.appendTo(tossContent);
-
-									setTimeout(()=>{ // appare the borad for game
-										$(".toss-container").addClass('hidden');
-										let playContainer = $(".play-conatiner");
-										playContainer.attr('data-turn',tossIndex);
-										playContainer.attr('data-current-key',gamePlayerList[tossIndex].id);
-
-										let board =new Board;
-										board.appendBoard(playContainer);
-										playContainer.removeClass('hidden');
-									},5000)
-
-								},5000);
-								/* END toss component*/
-
-								
-								
+								CorssGame.buildToss();
 								
 
 							},2000)
@@ -558,11 +525,50 @@ class CorssGame {
 		})
 	}
 
-	
+	static buildToss(){
+		/* toss component*/
+		$(".toss-container")
+		.removeClass('hidden')
+		let tossContent = $(".toss-container .toss-content");
+		$("<p/>")
+		.html(
+			gamePlayerList[0].name +` is Head <br/>`+
+			gamePlayerList[1].name +` is Tail
+			`)
+		.appendTo(tossContent)
+		$("<img/>")
+		.attr({
+			src : icons.toss,
+			class : 'toss-img'
+		})
+		.appendTo(tossContent);
+		setTimeout(()=>{ // toss happend
+			tossContent.empty();
+			let tossIndex = Math.floor(Math.random()*tossArr.length);
+			$("<p/>")
+			.html(gamePlayerList[tossIndex].name +" won the toss.<br/> "+gamePlayerList[tossIndex].name+" start the game")
+			.appendTo(tossContent);
+
+			setTimeout(()=>{ // appare the borad for game
+				$(".toss-container").addClass('hidden');
+				let playContainer = $(".play-conatiner");
+				playContainer.attr('data-turn',tossIndex);
+				playContainer.attr('data-current-key',gamePlayerList[tossIndex].id);
+
+				let board =new Board;
+				board.appendBoard(playContainer);
+				playContainer.removeClass('hidden');
+				if(playMode == 1) { // only for single player 
+					Board.playBySystem();
+				}
+			},5000)
+
+		},5000);
+		/* END toss component*/
+	}
 	
 }
 
 $(()=>{
 	let corss = new CorssGame(".cross-game-container");
-
 })
