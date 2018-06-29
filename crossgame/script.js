@@ -44,7 +44,7 @@ const audios = {
 	success : '../sounds/win.wav',
 	fail : '../sounds/lost.wav'
 }
-const tossArr = ['head', 'tail'];
+const tossArr = ['Head', 'Tail'];
 
 var playerContainer , initContainer;
 
@@ -75,9 +75,6 @@ class Board {
 	appendBoard(playContainer)
 	{
 		var rows = [1,4,7];
-		var titleContainer = $("<div/>")
-					.addClass('title-container hidden')
-					.appendTo(playContainer);
 		
 		var board = $("<div/>")
 					.addClass('board')
@@ -101,7 +98,6 @@ class Board {
 					let currentUser = gamePlayerList[turn];
 					let currentKey = playContainer.attr('data-current-key');
 					let totalCell = playContainer.find('.cell').length;
-					console.log(currentKey +"=="+ currentUser['id'])
 					if (
 						(currentKey == currentUser['id']) && // check click by  current user or not
 					 	($("div.cell[data-value="+cellValue+"]").attr('data-click') == 'true') // check the cell is already clicked or not
@@ -130,6 +126,7 @@ class Board {
 						} else {
 							socket.emit('players-result', inputObj);
 						}
+
 					}
 					
 					
@@ -170,7 +167,15 @@ class Board {
 		.html('<div class="cell-content">'+html+'</div>')
 		.attr('data-click', 'false');
 		totalHit = $("div.cell[data-click=false]").length;
-
+		/*if (playMode == 2) { //omly for multi user play
+			setTimeout(()=>{
+				if (totalHit == $("div.cell[data-click=false]").length) {
+					$(".result-container .result-msg").html("<img src='"+icons.success+"' width='300' /><br/> Opponent left the game, You win");	
+					this.audioPlay(1);
+					$(".result-container").fadeIn(300);
+				}
+			},30000)
+		}*/
 		turn = (turn == 0)? 1:0;
 		
 		let result = this.calculateResult();
@@ -182,8 +187,8 @@ class Board {
 			});
 		} else { // result is declared
 			setTimeout(()=>{
+				playContainer.fadeOut();
 				playContainer.empty()
-				playContainer.addClass('hidden');
 				if (result.winUser == null ) {
 					$(".result-container .result-msg").html("<img src='"+icons.draw+"' width='300' /><br/>"+result.msg);
 					this.audioPlay(1);
@@ -197,7 +202,7 @@ class Board {
 					}
 				}
 				
-				$(".result-container").removeClass('hidden');
+				$(".result-container").fadeIn(300);
 			},2000)
 		}
 	}
@@ -219,9 +224,9 @@ class Board {
 			text = "Now "+gamePlayerList[turn].name+"'s turns";
 		}
 		$(".turn-conatiner .turn-container-text").text(text);
-		$(".turn-conatiner").removeClass('hidden');
+		$(".turn-conatiner").fadeIn(300);
 		setTimeout(()=>{
-			$(".turn-conatiner").addClass('hidden');
+			$(".turn-conatiner").fadeOut();
 		},2000)
 	}
 	calculateResult()
@@ -288,7 +293,7 @@ class CorssGame {
 
 		
 		var playContainer = $("<div/>")
-							.addClass('play-conatiner hidden')
+							.addClass('play-conatiner')
 							.attr({
 								'data-turn' : 0,
 								'data-click-count' : 0,
@@ -343,7 +348,7 @@ class CorssGame {
 					}
 				}
 				socket.emit('players', currentPlayer);
-				playerForm.addClass('hidden');
+				playerForm.fadeOut();
 				playMode = 2;
 			}
 			
@@ -351,14 +356,14 @@ class CorssGame {
 		.appendTo(playerForm)
 
 		mulitPlayerBtn.bind("click",()=>{
-			playerContainer.removeClass('hidden');
-			initContainer.addClass('hidden');
+			playerContainer.fadeIn(300);
+			initContainer.fadeOut();
 			playMode = 2;
 			gameId = makeid();
 		});
 		singlePlayerBtn.bind("click", ()=>{
-			playContainer.removeClass('hidden');
-			initContainer.addClass('hidden');
+			
+			initContainer.fadeOut();
 			playMode = 1;
 			gameId = makeid();
 			currentPlayer = {
@@ -397,7 +402,8 @@ class CorssGame {
 									<div class="spinner"></div>
 									`;
 							$(".player-display-container")
-							.removeClass('hidden')
+							.fadeIn(300)
+							
 							.html(html);
 							setTimeout(()=>{
 								if (gameOn == false) {
@@ -412,7 +418,7 @@ class CorssGame {
 									},3000)
 								}
 							},30000);
-							//currentPlayer['status'] = 'game-request';
+						
 						} else {
 							$(".notification-container").empty()
 							$("<p/>")
@@ -436,20 +442,19 @@ class CorssGame {
 									return p.id == reqId;
 								})
 								if(requestUser && requestUser.request == undefined) {
-									$(".alert-container")
-									.html("Sorry, "+requestUser.name+" is busy now")
-									.removeClass('hidden')
-									$(".notification-container").addClass("hidden");
+									$(".alert-container").html("Sorry, "+requestUser.name+" is busy now").fadeIn(300)
+									
+									$(".notification-container").fadeOut()
 								} else {
 									$("#btnNameInput").attr({
 										"data-request": reqId,
 										"data-game" : data.gameId
 									});
 									
-									initContainer.addClass("hidden");
-									playerContainer.removeClass("hidden");
-									playerForm.removeClass("hidden");
-									$(".notification-container").addClass("hidden");
+									initContainer.fadeOut();
+									playerContainer.fadeIn(300);
+									playerForm.fadeIn(300);
+									$(".notification-container").fadeOut();
 								}
 							})
 							.appendTo(btnPanel)
@@ -459,12 +464,12 @@ class CorssGame {
 								class : "btn btn-confirm"
 							})
 							.bind("click", ()=>{
-								$(".notification-container").addClass("hidden");
+								$(".notification-container").fadeOut();
 							})
 							.appendTo(btnPanel)
 							
 							$(".notification-container")
-							.removeClass('hidden');
+							.fadeIn(300);
 						}
 						
 					} else if(data.request == false ) {
@@ -493,12 +498,12 @@ class CorssGame {
 									<p>Please wait for toss</p>
 									`;
 							$(".player-display-container")
-							.removeClass('hidden')
+							fadeIn(300)
 							.html(html);
 						}
 						if (playerList[requestSendUserId].id == currentPlayer.id || playerList[requestAcceptUserId].id == currentPlayer.id) {
 							setTimeout(()=>{
-								$(".player-display-container").addClass("hidden");
+								$(".player-display-container").fadeOut();
 								delete playerList[requestSendUserId]['request'];
 								delete playerList[requestAcceptUserId]['request'];
 								gamePlayerList.push(playerList[requestSendUserId]);
@@ -507,8 +512,6 @@ class CorssGame {
 								socket.emit('players-engage', playerList[requestAcceptUserId].id);
 								gameOn = true;
 								CorssGame.buildToss();
-								
-
 							},2000)
 						}
 					}
@@ -528,11 +531,11 @@ class CorssGame {
 	static buildToss(){
 		/* toss component*/
 		$(".toss-container")
-		.removeClass('hidden')
+		.fadeIn(300)
 		let tossContent = $(".toss-container .toss-content");
 		$("<p/>")
 		.html(
-			gamePlayerList[0].name +` is Head <br/>`+
+			gamePlayerList[0].name +` is Head <br/> and <br/>`+
 			gamePlayerList[1].name +` is Tail
 			`)
 		.appendTo(tossContent)
@@ -545,19 +548,24 @@ class CorssGame {
 		setTimeout(()=>{ // toss happend
 			tossContent.empty();
 			let tossIndex = Math.floor(Math.random()*tossArr.length);
+			let tossMsg = gamePlayerList[tossIndex].name+' wins the toss and starts the game';
+			if(currentPlayer.id == gamePlayerList[tossIndex].id) {
+				tossMsg = 'You win the toss and start the game';
+			}
 			$("<p/>")
-			.html(gamePlayerList[tossIndex].name +" won the toss.<br/> "+gamePlayerList[tossIndex].name+" start the game")
+			.html("<strong style='font-size:40px'>"+tossArr[tossIndex]+"</strong><br/>"+tossMsg)
 			.appendTo(tossContent);
 
 			setTimeout(()=>{ // appare the borad for game
-				$(".toss-container").addClass('hidden');
+				$(".toss-container")
+				.fadeOut();
 				let playContainer = $(".play-conatiner");
 				playContainer.attr('data-turn',tossIndex);
 				playContainer.attr('data-current-key',gamePlayerList[tossIndex].id);
 
-				let board =new Board;
+				let board = new Board;
 				board.appendBoard(playContainer);
-				playContainer.removeClass('hidden');
+				playContainer.fadeIn(300);
 				if(playMode == 1) { // only for single player 
 					Board.playBySystem();
 				}

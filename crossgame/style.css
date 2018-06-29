@@ -26,6 +26,7 @@ body {
     font-family: '5yearsoldfont';
     text-align: center;
     z-index: 999;
+    display: none;
 }
 .cross-game-container {
 	width: 100%;
@@ -34,6 +35,7 @@ body {
 }
 .player-conatiner {
 	text-align: center;
+    display: none;
 }
 .player-display-container, .result-container {
     background: rgba(110, 110, 110, 0.5);
@@ -41,6 +43,7 @@ body {
     padding: 5px;
     font-size: 25px;
     color: #FFF;
+    display: none;
 }
 
 .player-conatiner , 
@@ -59,12 +62,20 @@ body {
     font-family: '5yearsoldfont';
 
 }
+.play-conatiner {
+    display: none;
+}
 .turn-conatiner, .toss-container  {
     background: rgba(255,255,255,0.5);
     z-index: 999;
     height: 340px;
     font-weight: bold;
     font-size: 30px;
+    display: none;
+}
+.toss-container {
+    font-size: 20px;
+    display: none;
 }
 .turn-container-text, .toss-content {
     position: absolute;
@@ -79,6 +90,7 @@ body {
     font-size: 25px;
     color: #FFFF;
     text-align: center;
+    display: none;
 }
 .title-container {
 	margin: 0 auto;
@@ -122,6 +134,8 @@ img {
 	color: #FFF;
 }
 .hidden {
+    opacity: 0;
+    transition: all 2s linear;
 	display: none;
 }
 input.nameInput {
