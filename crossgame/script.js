@@ -34,6 +34,15 @@ var cellItemList = [1,2,3,4,5,6,7,8,9];
 var currentPlayer = {};
 var gameOn = false;
 var gameId = '';
+const icons = {
+	success : "thumbs-up.png",
+	fail : "thumbs-down.png",
+	draw : "shake-hands.png"
+}
+const audios = {
+	success : '../sounds/win.wav',
+	fail : '../sounds/lost.wav'
+}
 var playerContainer , initContainer;
 class Board {
 	constructor() {
@@ -97,7 +106,7 @@ class Board {
 									playContainer.attr('data-current-key',systemPlayer.id);
 
 									$("div.cell:eq("+(randomItem-1)+")").trigger("click");
-								},2000)
+								},3000)
 							}
 							else {
 								let humanPlayer = gamePlayerList.find((p)=>{
@@ -168,18 +177,31 @@ class Board {
 				playContainer.empty()
 				playContainer.addClass('hidden');
 				if (result.winUser == null ) {
-					$(".result-container .result-msg").html("<img src='shake-hands.png' width='300' /><br/>"+result.msg);	
+					$(".result-container .result-msg").html("<img src='"+icons.draw+"' width='300' /><br/>"+result.msg);
+					this.audioPlay(1);
 				} else {
 					if (result.winUser.id == currentPlayer.id) {
-						$(".result-container .result-msg").html("<img src='thumbs-up.png' width='300' /><br/>"+result.msg);	
+						$(".result-container .result-msg").html("<img src='"+icons.success+"' width='300' /><br/>"+result.msg);	
+						this.audioPlay(1);
 					} else {
-						$(".result-container .result-msg").html("<img src='thumbs-down.png' width='300' /><br/>"+result.msg);	
+						$(".result-container .result-msg").html("<img src='"+icons.fail+"' width='300' /><br/>"+result.msg);	
+						this.audioPlay(2);
 					}
 				}
 				
 				$(".result-container").removeClass('hidden');
 			},2000)
 		}
+	}
+	audioPlay(type) {
+		let audioElement = document.createElement("audio");
+		if (type == 1) {
+			audioElement.setAttribute('src', audios.success);
+		} else {
+			audioElement.setAttribute('src', audios.fail);
+		}
+		audioElement.loop = true;
+		audioElement.play();
 	}
 	displayTurnContainer(turn) {
 		let text = '';
@@ -192,7 +214,7 @@ class Board {
 		$(".turn-conatiner").removeClass('hidden');
 		setTimeout(()=>{
 			$(".turn-conatiner").addClass('hidden');
-		},1000)
+		},2000)
 	}
 	calculateResult()
 	{
@@ -365,10 +387,24 @@ class CorssGame {
 							html = `
 									<p>Hi `+data.name+`</p>
 									<p>Please wait, we are searching your opponent.</p>
+									<div class="spinner"></div>
 									`;
 							$(".player-display-container")
 							.removeClass('hidden')
 							.html(html);
+							setTimeout(()=>{
+								if (gameOn == false) {
+									html = `
+										<p>Woops</p>
+										<p>No one interested</p>
+										`;
+									$(".player-display-container")
+									.html(html);
+									setTimeout(()=>{
+										window.location.reload();
+									},3000)
+								}
+							},30000);
 							//currentPlayer['status'] = 'game-request';
 						} else {
 							$(".notification-container").empty()
