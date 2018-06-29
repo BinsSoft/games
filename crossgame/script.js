@@ -37,12 +37,15 @@ var gameId = '';
 const icons = {
 	success : "thumbs-up.png",
 	fail : "thumbs-down.png",
-	draw : "shake-hands.png"
+	draw : "shake-hands.png",
+	toss : 'toss.gif'
 }
 const audios = {
 	success : '../sounds/win.wav',
 	fail : '../sounds/lost.wav'
 }
+const tossArr = ['head', 'tail'];
+
 var playerContainer , initContainer;
 class Board {
 	constructor() {
@@ -114,15 +117,12 @@ class Board {
 								})
 								playContainer.attr('data-current-key',humanPlayer.id);
 							}
-							//console.log(playContainer);
 							this.defineResult(playContainer, inputObj);
+							cellItemList.splice(cellItemList.indexOf(cellValue),1);
 
 						} else {
 							socket.emit('players-result', inputObj);
 						}
-						
-						cellItemList.splice(cellItemList.indexOf(cellValue),1);
-
 					}
 					
 					
@@ -163,6 +163,7 @@ class Board {
 		.html('<div class="cell-content">'+html+'</div>')
 		.attr('data-click', 'false');
 		totalHit = $("div.cell[data-click=false]").length;
+
 		turn = (turn == 0)? 1:0;
 		
 		let result = this.calculateResult();
@@ -474,7 +475,7 @@ class CorssGame {
 							html = `
 									<p>We find your opponent.</p><p>`+data.name+` will play with you</p>
 									<p>You will start The game</p>
-									<p>Please wait game starts shortly</p>
+									<p>Please wait toss</p>
 									`;
 							$(".player-display-container")
 							.html(html);
@@ -483,7 +484,7 @@ class CorssGame {
 							let requestUser = playerList[requestSendUserId];
 							html = `
 									<p>`+requestUser.name+` will start The game</p>
-									<p>Please wait game starts shortly</p>
+									<p>Please wait for toss</p>
 									`;
 							$(".player-display-container")
 							.removeClass('hidden')
@@ -491,9 +492,6 @@ class CorssGame {
 						}
 						if (playerList[requestSendUserId].id == currentPlayer.id || playerList[requestAcceptUserId].id == currentPlayer.id) {
 							setTimeout(()=>{
-								let board =new Board;
-								board.appendBoard(playContainer);
-								playContainer.removeClass('hidden');
 								$(".player-display-container").addClass("hidden");
 								delete playerList[requestSendUserId]['request'];
 								delete playerList[requestAcceptUserId]['request'];
@@ -502,6 +500,47 @@ class CorssGame {
 	
 								socket.emit('players-engage', playerList[requestAcceptUserId].id);
 								gameOn = true;
+
+								/* toss component*/
+								$(".toss-container")
+								.removeClass('hidden')
+								let tossContent = $(".toss-container .toss-content");
+								$("<p/>")
+								.html(
+									playerList[requestSendUserId].name +` is Head <br/>`+
+									playerList[requestAcceptUserId].name +` is Tail
+									`)
+								.appendTo(tossContent)
+								$("<img/>")
+								.attr({
+									src : icons.toss,
+									class : 'toss-img'
+								})
+								.appendTo(tossContent);
+								setTimeout(()=>{ // toss happend
+									tossContent.empty();
+									let tossIndex = Math.floor(Math.random()*tossArr.length);
+									$("<p/>")
+									.html(gamePlayerList[tossIndex].name +" won the toss.<br/> "+gamePlayerList[tossIndex].name+" start the game")
+									.appendTo(tossContent);
+
+									setTimeout(()=>{ // appare the borad for game
+										$(".toss-container").addClass('hidden');
+										let playContainer = $(".play-conatiner");
+										playContainer.attr('data-turn',tossIndex);
+										playContainer.attr('data-current-key',gamePlayerList[tossIndex].id);
+
+										let board =new Board;
+										board.appendBoard(playContainer);
+										playContainer.removeClass('hidden');
+									},5000)
+
+								},5000);
+								/* END toss component*/
+
+								
+								
+								
 
 							},2000)
 						}

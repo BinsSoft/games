@@ -43,7 +43,13 @@ body {
     color: #FFF;
 }
 
-.player-conatiner , .play-conatiner, .result-container, .init-container, .player-display-container, .turn-conatiner {
+.player-conatiner , 
+.play-conatiner, 
+.result-container, 
+.init-container, 
+.player-display-container, 
+.turn-conatiner, 
+.toss-container {
 	text-align: center;
 	width: 67%;
     position: absolute;
@@ -53,18 +59,21 @@ body {
     font-family: '5yearsoldfont';
 
 }
-.turn-conatiner {
+.turn-conatiner, .toss-container  {
     background: rgba(255,255,255,0.5);
     z-index: 999;
     height: 340px;
     font-weight: bold;
     font-size: 30px;
 }
-.turn-container-text {
+.turn-container-text, .toss-content {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%,-50%);
+}
+.toss-content {
+    width: 90%;
 }
 .result-container {
     font-size: 25px;
