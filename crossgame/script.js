@@ -155,7 +155,6 @@ class Board {
 		let turn = responseData.turn;
 		let cellValue = responseData.cell;
 		let hitUser = gamePlayerList[turn];
-		
 		gamePlayerList[turn].result.push(cellValue);
 		let html = '';
 		if (turn == 0) {
@@ -183,7 +182,8 @@ class Board {
 		if (result.status == false) { // result not declared
 			this.displayTurnContainer(turn);
 			playContainer.attr({
-				'data-turn' : turn
+				'data-turn' : turn,
+				'data-current-key':gamePlayerList[turn].id
 			});
 		} else { // result is declared
 			setTimeout(()=>{
@@ -224,6 +224,7 @@ class Board {
 			text = "Now "+gamePlayerList[turn].name+"'s turns";
 		}
 		$(".turn-conatiner .turn-container-text").text(text);
+		//playContainer.attr('data-current-key',gamePlayerList[turn].id);
 		$(".turn-conatiner").fadeIn(300);
 		setTimeout(()=>{
 			$(".turn-conatiner").fadeOut();
@@ -296,7 +297,7 @@ class CorssGame {
 							.addClass('play-conatiner')
 							.attr({
 								'data-turn' : 0,
-								'data-click-count' : 0,
+								
 								'data-current-key' : this.currentUserKey,
 							})
 							.appendTo(this.selector);
@@ -383,7 +384,8 @@ class CorssGame {
 				result : [],
 			};
 			gamePlayerList.push(systemPlayer);
-			CorssGame.buildToss();
+			let tossIndex = Math.floor(Math.random()*tossArr.length);
+			CorssGame.buildToss(tossIndex);
 
 		})
 		
@@ -489,18 +491,19 @@ class CorssGame {
 									<p>Please wait toss</p>
 									`;
 							$(".player-display-container")
+							.fadeIn(300)
 							.html(html);
 						} else {
 							
 							let requestUser = playerList[requestSendUserId];
 							html = `
-									<p>`+requestUser.name+` will start The game</p>
 									<p>Please wait for toss</p>
 									`;
 							$(".player-display-container")
-							fadeIn(300)
+							.fadeIn(300)
 							.html(html);
 						}
+
 						if (playerList[requestSendUserId].id == currentPlayer.id || playerList[requestAcceptUserId].id == currentPlayer.id) {
 							setTimeout(()=>{
 								$(".player-display-container").fadeOut();
@@ -508,27 +511,31 @@ class CorssGame {
 								delete playerList[requestAcceptUserId]['request'];
 								gamePlayerList.push(playerList[requestSendUserId]);
 								gamePlayerList.push(playerList[requestAcceptUserId]);
-	
-								socket.emit('players-engage', playerList[requestAcceptUserId].id);
+								if (currentPlayer.id == gamePlayerList[requestAcceptUserId].id) {
+									let tossIndex = Math.floor(Math.random()*tossArr.length);
+									socket.emit('toss-emmit', {toss : tossIndex, gameId : data.gameId});
+								}
 								gameOn = true;
-								CorssGame.buildToss();
+								
 							},2000)
 						}
 					}
 				}
 			}
 		});
-		socket.on("players-engage-result", (data)=>{
-			let requestUser = playerList.findIndex((p)=>{
+		socket.on("toss-emmit-result", (data)=>{
+			let tossIndex = data.toss;
+			CorssGame.buildToss(tossIndex);
+			/*let requestUser = playerList.findIndex((p)=>{
 				return p.id == data;
 			})
 			if(requestUser && playerList[requestUser] && playerList[requestUser]['request'] != undefined) {
 				delete playerList[requestUser]['request'];
-			}
+			}*/
 		})
 	}
 
-	static buildToss(){
+	static buildToss(tossIndex){
 		/* toss component*/
 		$(".toss-container")
 		.fadeIn(300)
@@ -547,7 +554,6 @@ class CorssGame {
 		.appendTo(tossContent);
 		setTimeout(()=>{ // toss happend
 			tossContent.empty();
-			let tossIndex = Math.floor(Math.random()*tossArr.length);
 			let winPlayer = gamePlayerList[tossIndex];
 			let tossMsg = gamePlayerList[tossIndex].name+' wins the toss and starts the game';
 			if(currentPlayer.id == gamePlayerList[tossIndex].id) {
