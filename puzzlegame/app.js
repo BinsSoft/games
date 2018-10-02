@@ -13,6 +13,7 @@ var getRandom = function (arr, n) {
 }
 var config = {
     container: document.getElementById('pazzle-container'),
+    maxWidth : window.innerWidth ,
     imageList: [
         'img/img1.jpg',
         'img/img2.jpg',
@@ -27,41 +28,55 @@ var drag = function (event) {
 }
 var drop = function(ev) {
     ev.preventDefault();
-    var data = ev.dataTransfer.getData("text");
-    var dragElement = document.querySelector("[data-slice='" + data + "']");
-    var dropElement = event.target;
-    var firstItemPosition = {
-        top: dragElement.style.top,
-        left: dragElement.style.left,
-    }
-    var secItemPosition = {
-        top: dropElement.style.top,
-        left: dropElement.style.left,
-    }
-    dragElement.style.top = secItemPosition.top;
-    dragElement.style.left = secItemPosition.left;
-    dropElement.style.top = firstItemPosition.top;
-    dropElement.style.left = firstItemPosition.left;
-    resultCalculate();
+    new Promise(function(resolve, reject) {
+        var data = ev.dataTransfer.getData("text");
+        var dragElement = document.querySelector("[data-slice='" + data + "']");
+        var dropElement = event.target;
+        var firstItem = {
+            id : dragElement.getAttribute('data-slice'),
+            position : {
+                top: dragElement.style.top,
+                left: dragElement.style.left
+            }
+        }
+        var secItem = {
+            id : dropElement.getAttribute('data-slice'),
+            position : {
+                top: dropElement.style.top,
+                left: dropElement.style.left
+            }
+        }
+        dragElement.style.top = secItem.position.top;
+        dragElement.style.left = secItem.position.left;
+        dragElement.setAttribute('data-slice', secItem.id);
+
+        dropElement.style.top = firstItem.position.top;
+        dropElement.style.left = firstItem.position.left;
+        dropElement.setAttribute('data-slice', firstItem.id);
+        resolve();
+    }).then(function(){
+        resultCalculate();
+    })
+    
 }
 var allowDrop = function(ev) {
     ev.preventDefault();
 }
 var resultCalculate  = function() {
-    var slices = document.querySelectorAll('.slices');
-    var result = "";
-    var currentResult = "";
-    var totalBlock = config.columnNo * config.rowNo; 
-    for (let x = 0; x < totalBlock; x++) {
-        result += x.toString();
+    var slices = Array.prototype.slice.call(document.querySelectorAll('.slice'));
+    var currentResult = '';
+    var exactResult = '';
+    for (let s in slices) {
+        exactResult += s.toString()+',';
+        currentResult += slices[s].getAttribute('data-slice')+','; 
     }
-    for (let s of slices) {
-        currentResult += s.getAttribute('data-slice'); 
+    if (currentResult === exactResult) {
+        setTimeout(function(){
+            alert ('Hey, You completed successfully');
+        },1000)
     }
-    console.log(result, currentResult);
 }
 var pazzle = function() {
-    
     var image = config.imageList[Math.floor(Math.random() *config.imageList.length) ];
     var newImage = new Image();
     newImage.src = image;
@@ -71,6 +86,7 @@ var pazzle = function() {
             height: this.height,
             src : this.src
         }
+        
         config.container.style.width = imageConfig.width + "px";
         config.container.style.height = imageConfig.height + "px";
 
@@ -111,23 +127,34 @@ var pazzle = function() {
             var count = 0;
             var interval = setInterval(function(){
                 var randomElement = getRandom(config.slices,2);
-                var firstItemPosition = {
-                    top : randomElement[0].style.top,
-                    left : randomElement[0].style.left,
+
+                var firstItem = {
+                    id : randomElement[0].getAttribute('data-slice'),
+                    position : {
+                        top : randomElement[0].style.top,
+                        left : randomElement[0].style.left,
+                    }
                 }
-                var secItemPosition = {
-                    top: randomElement[1].style.top,
-                    left: randomElement[1].style.left,
+                var secItem = {
+                    id : randomElement[1].getAttribute('data-slice'),
+                    position : {
+                        top: randomElement[1].style.top,
+                        left: randomElement[1].style.left,
+                    }
                 }
-                randomElement[0].style.top = secItemPosition.top;
-                randomElement[0].style.left = secItemPosition.left;
-                randomElement[1].style.top = firstItemPosition.top;
-                randomElement[1].style.left = firstItemPosition.left;
+               // console.log(firstItem, secItem);
+                randomElement[0].style.top = secItem.position.top;
+                randomElement[0].style.left = secItem.position.left;
+                randomElement[0].setAttribute('data-slice', secItem.id );
+                randomElement[1].style.top = firstItem.position.top;
+                randomElement[1].style.left = firstItem.position.left;
+                randomElement[1].setAttribute('data-slice', firstItem.id );
+                    //clearInterval(interval);
                 count++;
-                if (count == 10) {
+                if (count == totalBlock) {
                     clearInterval(interval);
                 }
-            },500);
+            },50);
         })
         
     }

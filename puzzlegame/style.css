@@ -1,6 +1,10 @@
 #pazzle-container {
     border: 1px solid #CCC;
     position: relative;
+    /* background-repeat: no-repeat;
+    background-position: top;
+    background-size: cover; */
+ 
 }
 .slice {
     /* display: inline-block; */
