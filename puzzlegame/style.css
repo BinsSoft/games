@@ -1,13 +1,213 @@
-#pazzle-container {
-    border: 1px solid #CCC;
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.header {
+    height: 50px;
+    background: #335ea2;
     position: relative;
-    /* background-repeat: no-repeat;
+}
+.header .header-btn {
+    float: right;
+    margin-right: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    outline:  none;
+    line-height: 48px;
+    color: #FFF;
+    font-weight: bold;
+}
+.logo {
+    float: left;
+    width: 20%;
+}
+.logo img {
+    width: 45px;
+    float: left;
+}
+.logo .app-title {
+    float: left;
+    margin: 6px;
+    color: #FFF;
+    font-weight: bold;
+}
+.online-container 
+{
+    float: left;
+    width: 55%;
+    line-height: 45px;
+    text-align: center;
+    color: #FFF;
+}
+#howToPlayContainer {
+    
+    
+}
+#howToPlayContainer li {
+    padding: 10px;
+    font-size: 14px;
+}
+#puzzle-container {
+    position: relative;
+    background-repeat: no-repeat;
     background-position: top;
-    background-size: cover; */
+    background-size: 100%;
+    float: left;
  
+}
+#puzzle-action-container { 
+    float: left;
+}
+#puzzle-action-container .action-heading {
+    text-align: center;
+    font-size: 25px;
+}
+.puzzle-mode-container, 
+.change-pic-container, 
+.start-quit-container, 
+.help-container {
+    width: 100%;
+    padding: 5px;
+    text-align: center;
+}
+#puzzle-action-container button {
+    padding: 10px;
+    text-transform: capitalize;
+    background: #2a4875;
+    border: none;
+    color: #FFF;
+    font-weight: bold;
+    outline: none;
+} 
+
+.puzzle-mode-container button.mode-btn {
+    width: 30.6%;
+}
+.puzzle-mode-container button.mode-btn:first-of-type{
+    border-radius: 5px 0 0 5px;
+}
+.puzzle-mode-container button.mode-btn:last-of-type {
+    border-radius: 0 5px  5px 0;
+}
+.change-pic-container  button {
+    width: 92%;
+    border-radius: 5px;
+}
+.start-quit-container button {
+    width: 92%;
+    border-radius: 5px;
+}
+.help-container button {
+    width: 92%;
+    border-radius: 5px;
+}
+.help-container button.help-btn span {
+    display: block;
+    font-weight: normal;
+    font-size: 12px;
+    margin-top: 5px;
+    text-decoration: underline;
+}
+.puzzle-mode-container button.mode-btn.active, 
+#puzzle-action-container button:hover {
+    background: #335ea2 !important;
+    cursor: pointer;
+}
+#puzzle-action-container button:disabled {
+    background: #CCC!important;
+}
+#puzzle-action-container select.select-category {
+    width: 92%;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid #CCC;
+    background: none;
+    margin-bottom: 10px;
+    outline:  none;
 }
 .slice {
     /* display: inline-block; */
     margin: 0;
     position: absolute;
+    background-repeat: no-repeat;
+    border: 1px solid #1e1e1e;
+}
+.hidden {
+   display: none;
+}
+.result-container {
+    text-align: center;
+    margin: 15px;
+}
+.result-container h4 {
+    margin: 0;
+    padding: 0;
+}
+.clearfix 
+{
+    clear: both;
+}
+.challenge-container .text-challenge {
+    width: 96%;
+    padding: 10px;
+    border: none;
+    border-bottom: 1px solid #CCC;
+    outline: none;
+}
+.modal-custom {
+    background: rgba(0,0,0,0.5);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+}
+.modal-custom-container {
+    background: #FFF;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 50%;
+    padding: 10px;
+    border-radius: 5px;
+}
+.modal-custom-container .modal-header {
+    border-bottom: 1px solid #CCC;
+}
+.modal-custom-container .modal-header h3 {
+    font-size: 20px;
+    float: left;
+    color: #335ea2;
+}
+.modal-custom-container .modal-header .close-modal {
+    cursor: pointer;
+    float: right;
+    font-size: 24px;
+    color: #a2a2a2;
+    margin-top: 15px;
+}
+/* .modal-custom-container .modal-content {
+    border: none;
+} */
+
+.glow {
+    color: rgba(234, 39, 39, 0.89);
+    -webkit-animation-duration: 1s;
+    -webkit-animation-name: glow;
+    -webkit-animation-direction: alternate;
+    -webkit-animation-iteration-count: infinite;
+    animation-duration: 1s;
+    animation-name: glow;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+
+}
+
+@-webkit-keyframes glow {
+    from { text-shadow: 0 0 0px red; }
+    to { text-shadow: 0 0 20px red; }
 }
