@@ -31,7 +31,7 @@ var config = {
             countdown: 300,
         },
     },
-    currentCategory: 'Animale',
+    currentCategory: '',
     currentMode : 'easy',
     currentDrugSlice : '',
     gameStatus : 0,
@@ -75,6 +75,7 @@ var Puzzle = {
             this.currentMode = query.m;
             this._loadImage();
         } else {
+            this.currentCategory = this.imageList[0];
             this.randmomImage();
         }
         
