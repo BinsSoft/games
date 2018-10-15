@@ -133,6 +133,8 @@ var Puzzle = {
 
         var selectCategory = document.createElement('select');
         selectCategory.classList.add('select-category');
+        selectCategory.classList.add('action-btn');
+        
         for (var c of this.imageList) {
             let option = document.createElement('option');
             option.value = c;
