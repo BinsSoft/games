@@ -11,7 +11,7 @@ export class ContainerComponent implements OnInit {
 	totalCell: number = 0;
 	totalBlock: number = 0;
 	cellWidth: number = 50;
-	cellGenerateOrder: Array<any> = [5,1,9,3, 7,2,4,6, 8];
+	cellGenerateOrder: Array<any> = [5,1,9];
 	allCells: any = {
 		"1" : [1,2,3,4,5,6,7,8,9],
 		"2" : [1,2,3,4,5,6,7,8,9],
@@ -93,19 +93,9 @@ export class ContainerComponent implements OnInit {
 			});
 		});
 
-		let blankElements = document.querySelectorAll("td:not([data-value])");
-		// console.log(blankElements);
-		console.log(this.allCells);
-		/*blankElements.forEach((item:any)=> {
-			let block = item.dataset.block;
-			let cellArr = this.allCells[block];
-			let cell = this.getProperCell(cellArr, item);
-			if (cell) {
-				item.setAttribute("data-value", cell);
-				item.innerText = cell;
-				this.allCells[block].splice( this.allCells[block].indexOf(cell) , 1 );
-			}
-		});*/
+		
+		
+		
 	}
 
 	getProperCell(cellArr, targetElement) {
@@ -121,11 +111,9 @@ export class ContainerComponent implements OnInit {
 			document.querySelectorAll("td[data-row='"+targetRow+"'][data-value='"+cell+"']").length > 0
 			)
 			) {
-			
-			cellArr.splice( cellArr.indexOf(cell) , 1 );
-			console.log(cell+' is repeat', targetElement, cellArr);
 			return this.getProperCell(cellArr, targetElement);
 		}
+		cellArr.splice( cellArr.indexOf(cell) , 1 );
 		return cell;
 	}
 
