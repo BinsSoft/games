@@ -94,16 +94,79 @@ export class ContainerComponent implements OnInit {
 		});
 
 		
-		
+		// console.log(blankElements);
+		//console.log(this.allCells);
+		for (let row = 1; row<=this.totalBlock-8; row++ ) {
+			let blankElements = document.querySelectorAll("td[data-row='"+row+"']:not([data-value])");	
+			
+
+			blankElements.forEach((element:any)=>{
+
+				let fullElements = document.querySelectorAll("td[data-row='"+row+"'][data-value]");
+				let fullCells = [];
+				let cellArr = [1,2,3,4,5,6,7,8,9];
+
+				fullElements.forEach((e:any)=>{
+					//console.log("not blank : "+e.dataset.value);
+					if (cellArr.indexOf( Number(e.dataset.value) ) > -1) {
+						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
+					}
+				});
+				
+				let lastCell = cellArr[0];
+				let colElements = document.querySelectorAll("td[data-column='"+element.dataset.column+"'][data-value]");
+
+				colElements.forEach((e:any)=>{
+					console.log("column  : "+e.dataset.value);
+					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
+						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
+					}
+				});	
+			
+				
+				
+				console.log(cellArr);
+
+				let cell = this.getProperCell(cellArr, element);
+				if (cell) {
+						
+					element.setAttribute("data-value", cell);
+					element.innerText = cell;
+					this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(cell) , 1 );
+					cellArr.splice( cellArr.indexOf(cell) , 1 );
+				} else {
+					console.log("last cell :"+lastCell);
+					let previousElement = this.swapLastCell( element, element);
+					element.setAttribute("data-value", previousElement.dataset.value);
+					element.innerText = previousElement.dataset.value;
+					previousElement.setAttribute("data-value", lastCell);
+					previousElement.innerText = lastCell;
+				}
+			});
+		}	
 		
 	}
 
+	swapLastCell( targetElement, lastElement) {
+		let previousElement = targetElement.previousSibling;
+		let colElements = document.querySelectorAll("td[data-column='"+lastElement.dataset.column+"'][data-value='"+previousElement.dataset.value+"']");
+		if (colElements.length > 0) {
+			return this.swapLastCell( previousElement, lastElement);
+		}
+		let previousValue = previousElement.dataset.value;
+		
+		return previousElement;
+	}
+
 	getProperCell(cellArr, targetElement) {
-		let randormIndex = Math.floor(Math.random()*cellArr.length);
-		let cell = cellArr[  randormIndex ];
+		
 		let targetColumn = targetElement.dataset.column;
 		let targetRow = targetElement.dataset.row;
 		let targetBlock = targetElement.dataset.block;
+		let randormIndex = (targetBlock === "5" || targetBlock=== "1" || targetBlock==="9")? Math.floor(Math.random()*cellArr.length) : 0;
+		let cell = cellArr[  randormIndex ];
+
+		console.log(cellArr, cell, targetElement);
 		if (cellArr.length > 0 
 			&&
 			(document.querySelectorAll("td[data-column='"+targetColumn+"'][data-value='"+cell+"']").length > 0 
