@@ -96,7 +96,7 @@ export class ContainerComponent implements OnInit {
 		
 		// console.log(blankElements);
 		//console.log(this.allCells);
-		for (let row = 1; row<=this.totalBlock-8; row++ ) {
+		for (let row = 1; row<=this.totalBlock; row++ ) {
 			let blankElements = document.querySelectorAll("td[data-row='"+row+"']:not([data-value])");	
 			
 
@@ -107,12 +107,12 @@ export class ContainerComponent implements OnInit {
 				let cellArr = [1,2,3,4,5,6,7,8,9];
 
 				fullElements.forEach((e:any)=>{
-					//console.log("not blank : "+e.dataset.value);
+					console.log("row  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1) {
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					}
 				});
-				
+				console.log(cellArr);
 				let lastCell = cellArr[0];
 				let colElements = document.querySelectorAll("td[data-column='"+element.dataset.column+"'][data-value]");
 
@@ -121,7 +121,18 @@ export class ContainerComponent implements OnInit {
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					}
-				});	
+				});
+
+				let blockElements = document.querySelectorAll("td[data-block='"+element.dataset.block+"'][data-value]");
+				if (cellArr.length > 0) {
+					lastCell = cellArr[0];
+				}
+				blockElements.forEach((e:any)=>{
+					console.log("block  : "+e.dataset.value);
+					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
+						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
+					}
+				});
 			
 				
 				
@@ -129,50 +140,54 @@ export class ContainerComponent implements OnInit {
 
 				let cell = this.getProperCell(cellArr, element);
 				if (cell) {
-						
+
 					element.setAttribute("data-value", cell);
 					element.innerText = cell;
 					this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(cell) , 1 );
 					cellArr.splice( cellArr.indexOf(cell) , 1 );
 				} else {
-					console.log("last cell :"+lastCell);
-					let previousElement = this.swapLastCell( element, element);
+					/*console.log("last cell :"+lastCell);
+					let previousElement = this.swapLastCell( element, element, lastCell);
 					element.setAttribute("data-value", previousElement.dataset.value);
 					element.innerText = previousElement.dataset.value;
 					previousElement.setAttribute("data-value", lastCell);
-					previousElement.innerText = lastCell;
+					previousElement.innerText = lastCell;*/
 				}
 			});
 		}	
 		
 	}
 
-	swapLastCell( targetElement, lastElement) {
+	swapLastCell( targetElement, lastElement, lastCell) {
 		let previousElement = targetElement.previousSibling;
 		let colElements = document.querySelectorAll("td[data-column='"+lastElement.dataset.column+"'][data-value='"+previousElement.dataset.value+"']");
-		if (colElements.length > 0) {
-			return this.swapLastCell( previousElement, lastElement);
+		let prevColElements = document.querySelectorAll("td[data-column='"+previousElement.dataset.column+"'][data-value='"+lastCell+"']");
+		if (colElements.length > 0 || prevColElements.length > 0) {
+			return this.swapLastCell( previousElement, lastElement, lastCell);
 		}
 		let previousValue = previousElement.dataset.value;
 		
 		return previousElement;
 	}
 
-	getProperCell(cellArr, targetElement) {
+	getProperCell(cellArr, targetElement, cellIndex = 0) {
 		
 		let targetColumn = targetElement.dataset.column;
 		let targetRow = targetElement.dataset.row;
 		let targetBlock = targetElement.dataset.block;
-		let randormIndex = (targetBlock === "5" || targetBlock=== "1" || targetBlock==="9")? Math.floor(Math.random()*cellArr.length) : 0;
+		let randormIndex = (targetBlock === "5" || targetBlock=== "1" || targetBlock==="9")? Math.floor(Math.random()*cellArr.length) : cellIndex;
 		let cell = cellArr[  randormIndex ];
 
 		console.log(cellArr, cell, targetElement);
 		if (cellArr.length > 0 
 			&&
-			(document.querySelectorAll("td[data-column='"+targetColumn+"'][data-value='"+cell+"']").length > 0 
+			(
+			document.querySelectorAll("td[data-column='"+targetColumn+"'][data-value='"+cell+"']").length > 0 
 			||
 			document.querySelectorAll("td[data-row='"+targetRow+"'][data-value='"+cell+"']").length > 0
+
 			)
+
 			) {
 			return this.getProperCell(cellArr, targetElement);
 		}
