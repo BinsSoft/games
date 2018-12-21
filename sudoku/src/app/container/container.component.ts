@@ -102,22 +102,24 @@ export class ContainerComponent implements OnInit {
 
 			blankElements.forEach((element:any)=>{
 
-				let fullElements = document.querySelectorAll("td[data-row='"+row+"'][data-value]");
 				let fullCells = [];
 				let cellArr = [1,2,3,4,5,6,7,8,9];
 
+				let fullElements = document.querySelectorAll("td[data-row='"+row+"'][data-value]");
 				fullElements.forEach((e:any)=>{
-					console.log("row  : "+e.dataset.value);
+					// console.log("row  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1) {
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					}
 				});
-				console.log(cellArr);
+
+
+				// console.log(cellArr);
 				let lastCell = cellArr[0];
 				let colElements = document.querySelectorAll("td[data-column='"+element.dataset.column+"'][data-value]");
 
 				colElements.forEach((e:any)=>{
-					console.log("column  : "+e.dataset.value);
+					// console.log("column  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					}
@@ -128,7 +130,7 @@ export class ContainerComponent implements OnInit {
 					lastCell = cellArr[0];
 				}
 				blockElements.forEach((e:any)=>{
-					console.log("block  : "+e.dataset.value);
+					// console.log("block  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					}
@@ -136,7 +138,7 @@ export class ContainerComponent implements OnInit {
 			
 				
 				
-				console.log(cellArr);
+				// console.log(cellArr);
 
 				let cell = this.getProperCell(cellArr, element);
 				if (cell) {
@@ -146,28 +148,58 @@ export class ContainerComponent implements OnInit {
 					this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(cell) , 1 );
 					cellArr.splice( cellArr.indexOf(cell) , 1 );
 				} else {
-					/*console.log("last cell :"+lastCell);
-					let previousElement = this.swapLastCell( element, element, lastCell);
-					element.setAttribute("data-value", previousElement.dataset.value);
-					element.innerText = previousElement.dataset.value;
-					previousElement.setAttribute("data-value", lastCell);
-					previousElement.innerText = lastCell;*/
+					// console.log("last cell :"+lastCell);
+					let filterCell = this.swapLastCell(element, lastCell);
+					if (filterCell.dataset.value) {
+						let cellValue = Number(filterCell.dataset.value);
+						element.setAttribute("data-value", cellValue);
+						element.innerText = cellValue;
+						// console.log("filter last cell :", lastCell);
+						filterCell.setAttribute("data-value", lastCell);
+						filterCell.innerText = lastCell;
+						this.allCells[filterCell.dataset.block].splice( this.allCells[filterCell.dataset.block].indexOf(cellValue) , 1 );
+						this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(lastCell) , 1 );
+					} else {
+						element.setAttribute("data-tmp-value", lastCell);
+						this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(lastCell) , 1 );
+					}
+					
 				}
 			});
-		}	
-		
+		}
 	}
 
-	swapLastCell( targetElement, lastElement, lastCell) {
-		let previousElement = targetElement.previousSibling;
-		let colElements = document.querySelectorAll("td[data-column='"+lastElement.dataset.column+"'][data-value='"+previousElement.dataset.value+"']");
-		let prevColElements = document.querySelectorAll("td[data-column='"+previousElement.dataset.column+"'][data-value='"+lastCell+"']");
-		if (colElements.length > 0 || prevColElements.length > 0) {
-			return this.swapLastCell( previousElement, lastElement, lastCell);
+	swapLastCell( targetElement, targetCell) {
+		let targetRow = targetElement.dataset.row;
+		let targetBlock = targetElement.dataset.block;
+		let rowCells = document.querySelectorAll("td[data-row='"+targetRow+"']:not([data-block='"+targetBlock+"'])");
+		// console.log("row cells filter :", rowCells);
+		let filterCell = null;
+		rowCells.forEach((e:any)=>{
+			if (
+				document.querySelectorAll("td[data-block='"+e.dataset.block+"'][data-value='"+targetCell+"']:not([data-tmp-value])").length === 0
+				&&
+				document.querySelectorAll("td[data-column='"+e.dataset.column+"'][data-value='"+targetCell+"']:not([data-tmp-value])").length === 0
+				&&
+				document.querySelectorAll("td[data-column='"+targetElement.dataset.column+"'][data-value='"+e.dataset.value+"']:not([data-tmp-value])").length === 0
+			) {
+				filterCell = e;
+			}
+		});
+		if (filterCell === null) {
+			let rowCells = document.querySelectorAll("td[data-row='"+targetRow+"'][data-block='"+targetBlock+"']");
+			// console.log("null row cells :", rowCells);
+			rowCells.forEach((e:any)=>{
+			if (
+				document.querySelectorAll("td[data-column='"+targetElement.dataset.column+"'][data-value='"+e.dataset.value+"']").length === 0
+			) {
+				filterCell = e;
+			return false;
+			}
+		});
 		}
-		let previousValue = previousElement.dataset.value;
-		
-		return previousElement;
+		// console.log("filter cell : ",filterCell.dataset, filterCell);
+		return filterCell;
 	}
 
 	getProperCell(cellArr, targetElement, cellIndex = 0) {
@@ -178,7 +210,8 @@ export class ContainerComponent implements OnInit {
 		let randormIndex = (targetBlock === "5" || targetBlock=== "1" || targetBlock==="9")? Math.floor(Math.random()*cellArr.length) : cellIndex;
 		let cell = cellArr[  randormIndex ];
 
-		console.log(cellArr, cell, targetElement);
+		// console.log(cellArr, cell, targetElement);
+		cellArr.splice( cellArr.indexOf(cell) , 1 );
 		if (cellArr.length > 0 
 			&&
 			(
@@ -189,9 +222,10 @@ export class ContainerComponent implements OnInit {
 			)
 
 			) {
+
 			return this.getProperCell(cellArr, targetElement);
 		}
-		cellArr.splice( cellArr.indexOf(cell) , 1 );
+		
 		return cell;
 	}
 
