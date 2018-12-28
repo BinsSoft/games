@@ -11,7 +11,7 @@ export class ContainerComponent implements OnInit {
 	totalCell: number = 0;
 	totalBlock: number = 0;
 	cellWidth: number = 50;
-	cellGenerateOrder: Array<any> = [5,1,9];
+	cellGenerateOrder: Array<any> = [5];
 	allCells: any = {
 		"1" : [1,2,3,4,5,6,7,8,9],
 		"2" : [1,2,3,4,5,6,7,8,9],
@@ -23,6 +23,10 @@ export class ContainerComponent implements OnInit {
 		"8" : [1,2,3,4,5,6,7,8,9],
 		"9" : [1,2,3,4,5,6,7,8,9]
 	};
+	cellColors: Array<any> = [
+	"#000000","#ff0000", "#0037ff", 
+	"#0037ff", "#000000", "#ff0000", 
+	"#000000", "#ff0000",  "#0037ff",]
 
 	constructor(public el: ElementRef) { }
 
@@ -42,6 +46,8 @@ export class ContainerComponent implements OnInit {
 		let block: number = 1;
 		let blockRowCount: number = 0;
 		let table = document.createElement('table');
+		table.setAttribute("cellpadding",0);
+		table.setAttribute("cellspacing",0);
 		this.el.nativeElement.appendChild(table);
 		let tr = document.createElement('tr');
 		table.appendChild(tr);
@@ -63,6 +69,7 @@ export class ContainerComponent implements OnInit {
 			if (c%(this.cell * this.totalBlock) === 0) {
 				blockRowCount += this.cell;	
 			}
+			td.style.border = "1px solid "+this.cellColors[(block-1)];
 			td.setAttribute('data-block',block.toString());
 			
 			tr.appendChild(td);
@@ -82,7 +89,7 @@ export class ContainerComponent implements OnInit {
 		this.cellGenerateOrder.forEach((block)=>{
 			let midBlockElements = document.querySelectorAll("td[data-block='"+block+"']");
 			let cellArr = [1,2,3,4,5,6,7,8,9]; // this.allCells[block];
-			midBlockElements.forEach((item:any)=> {
+			/*midBlockElements.forEach((item:any)=> {
 					
 				let cell = this.getProperCell(cellArr, item);
 				if (cell) {
@@ -90,13 +97,13 @@ export class ContainerComponent implements OnInit {
 					item.innerText = cell;
 					this.allCells[block].splice( this.allCells[block].indexOf(cell) , 1 );
 				}
-			});
+			});*/
 		});
 
 		
 		// console.log(blankElements);
 		//console.log(this.allCells);
-		for (let row = 1; row<=this.totalBlock; row++ ) {
+		for (let row = 1; row<=this.totalBlock-1; row++ ) {
 			let blankElements = document.querySelectorAll("td[data-row='"+row+"']:not([data-value])");	
 			
 
@@ -105,27 +112,32 @@ export class ContainerComponent implements OnInit {
 				let fullCells = [];
 				let cellArr = [1,2,3,4,5,6,7,8,9];
 
-				let fullElements = document.querySelectorAll("td[data-row='"+row+"'][data-value]");
+				let fullElements = document.querySelectorAll("td[data-row='"+row+"']");
 				fullElements.forEach((e:any)=>{
 					// console.log("row  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1) {
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					}
+					else if (cellArr.indexOf( Number(e.dataset.tmpvalue) ) > -1) {
+						cellArr.splice(cellArr.indexOf( Number(e.dataset.tmpvalue) ), 1);
+					}
 				});
 
 
-				// console.log(cellArr);
+				// console.log("after row:", cellArr);
 				let lastCell = cellArr[0];
-				let colElements = document.querySelectorAll("td[data-column='"+element.dataset.column+"'][data-value]");
+				let colElements = document.querySelectorAll("td[data-column='"+element.dataset.column+"']");
 
 				colElements.forEach((e:any)=>{
 					// console.log("column  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
+					} else if (cellArr.indexOf( Number(e.dataset.tmpvalue) ) > -1) {
+						cellArr.splice(cellArr.indexOf( Number(e.dataset.tmpvalue) ), 1);
 					}
 				});
-
-				let blockElements = document.querySelectorAll("td[data-block='"+element.dataset.block+"'][data-value]");
+				// console.log("after column", cellArr);
+				let blockElements = document.querySelectorAll("td[data-block='"+element.dataset.block+"']");
 				if (cellArr.length > 0) {
 					lastCell = cellArr[0];
 				}
@@ -133,12 +145,14 @@ export class ContainerComponent implements OnInit {
 					// console.log("block  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
+					} else if (cellArr.indexOf( Number(e.dataset.tmpvalue) ) > -1) {
+						cellArr.splice(cellArr.indexOf( Number(e.dataset.tmpvalue) ), 1);
 					}
 				});
 			
 				
 				
-				// console.log(cellArr);
+				 // console.log("after block", cellArr);
 
 				let cell = this.getProperCell(cellArr, element);
 				if (cell) {
@@ -148,58 +162,65 @@ export class ContainerComponent implements OnInit {
 					this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(cell) , 1 );
 					cellArr.splice( cellArr.indexOf(cell) , 1 );
 				} else {
-					// console.log("last cell :"+lastCell);
-					let filterCell = this.swapLastCell(element, lastCell);
-					if (filterCell.dataset.value) {
-						let cellValue = Number(filterCell.dataset.value);
-						element.setAttribute("data-value", cellValue);
-						element.innerText = cellValue;
-						// console.log("filter last cell :", lastCell);
-						filterCell.setAttribute("data-value", lastCell);
-						filterCell.innerText = lastCell;
-						this.allCells[filterCell.dataset.block].splice( this.allCells[filterCell.dataset.block].indexOf(cellValue) , 1 );
-						this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(lastCell) , 1 );
-					} else {
-						element.setAttribute("data-tmp-value", lastCell);
-						this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(lastCell) , 1 );
-					}
-					
+					element.setAttribute("data-tmpvalue", lastCell);
+					this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(lastCell) , 1 );
+					cellArr.splice( cellArr.indexOf(lastCell) , 1 );
 				}
 			});
+
+			let blankRowElements = document.querySelectorAll("td[data-tmpvalue]");
+			blankRowElements.forEach((element:any, index)=>{
+					let cellValue = element.dataset.tmpvalue;
+					let filterCell = this.swapLastCell(element, cellValue);
+					if (filterCell.length > 0) {
+						let filterCellValue = (filterCell[0].dataset.tmpvalue)? filterCell[0].dataset.tmpvalue: filterCell[0].dataset.value;
+						element.setAttribute('data-value', filterCellValue );
+						element.innerText = filterCellValue;
+						element.removeAttribute('data-tmpvalue')
+
+
+						filterCell[0].setAttribute('data-value', cellValue );
+						filterCell[0].innerText = cellValue;
+					}
+					console.log(cellValue, filterCell);
+
+			});
 		}
+		
 	}
 
 	swapLastCell( targetElement, targetCell) {
 		let targetRow = targetElement.dataset.row;
 		let targetBlock = targetElement.dataset.block;
-		let rowCells = document.querySelectorAll("td[data-row='"+targetRow+"']:not([data-block='"+targetBlock+"'])");
-		// console.log("row cells filter :", rowCells);
-		let filterCell = null;
-		rowCells.forEach((e:any)=>{
+		let targetColumn = targetElement.dataset.column;
+		// let filterCell = null;
+		let rowCells = document.querySelectorAll("td[data-row='"+targetRow+"']:not([data-tmpvalue='"+targetCell+"'])");
+		console.log(rowCells);
+		let filterNodes = [];
+		rowCells.forEach((element:any, index)=>{
+			let filterData = {
+				index: index,
+				column : element.dataset.column,
+				block : element.dataset.block,
+				value : (element.dataset.tmpvalue)?element.dataset.tmpvalue:element.dataset.value,
+				field : (element.dataset.tmpvalue)?"data-tmpvalue":"data-value",
+			};
 			if (
-				document.querySelectorAll("td[data-block='"+e.dataset.block+"'][data-value='"+targetCell+"']:not([data-tmp-value])").length === 0
+				document.querySelectorAll("td[data-column='"+filterData.column+"']["+filterData.field+"='"+targetCell+"']").length === 0
 				&&
-				document.querySelectorAll("td[data-column='"+e.dataset.column+"'][data-value='"+targetCell+"']:not([data-tmp-value])").length === 0
+				document.querySelectorAll("td[data-column='"+targetColumn+"']["+filterData.field+"='"+filterData.value+"']").length === 0
 				&&
-				document.querySelectorAll("td[data-column='"+targetElement.dataset.column+"'][data-value='"+e.dataset.value+"']:not([data-tmp-value])").length === 0
+				document.querySelectorAll("td[data-block='"+filterData.block+"']["+filterData.field+"='"+targetCell+"']").length === 0
+				&&
+				document.querySelectorAll("td[data-block='"+targetBlock+"']["+filterData.field+"='"+filterData.value+"']").length === 0
+				
 			) {
-				filterCell = e;
+				filterNodes.push(element);
 			}
+			// console.log(filterData);
 		});
-		if (filterCell === null) {
-			let rowCells = document.querySelectorAll("td[data-row='"+targetRow+"'][data-block='"+targetBlock+"']");
-			// console.log("null row cells :", rowCells);
-			rowCells.forEach((e:any)=>{
-			if (
-				document.querySelectorAll("td[data-column='"+targetElement.dataset.column+"'][data-value='"+e.dataset.value+"']").length === 0
-			) {
-				filterCell = e;
-			return false;
-			}
-		});
-		}
-		// console.log("filter cell : ",filterCell.dataset, filterCell);
-		return filterCell;
+		//console.log(rowCells);
+		return filterNodes;
 	}
 
 	getProperCell(cellArr, targetElement, cellIndex = 0) {
