@@ -1,0 +1,11 @@
+<div id="content"></div>
+<div id="action-content">
+	<div class="game-mode">
+		<button class="game-mode-button" (click)="changeMode('e')">Easy</button>
+		<button class="game-mode-button" (click)="changeMode('m')">Medium</button>
+		<button class="game-mode-button" (click)="changeMode('h')">Hard</button>
+	</div>
+	<div class="refresher">
+		<button (click)="changeMode()">Refresh</button>
+	</div>
+</div>

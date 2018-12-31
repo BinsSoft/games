@@ -1,4 +1,5 @@
 import { Component, OnInit , ElementRef, Input} from '@angular/core';
+import SampleData from "../../assets/SampleData.json"; 
 
 @Component({
   selector: 'app-container',
@@ -12,21 +13,8 @@ export class ContainerComponent implements OnInit {
 	totalBlock: number = 0;
 	cellWidth: number = 50;
 	cellGenerateOrder: Array<any> = [5];
-	allCells: any = {
-		"1" : [1,2,3,4,5,6,7,8,9],
-		"2" : [1,2,3,4,5,6,7,8,9],
-		"3" : [1,2,3,4,5,6,7,8,9],
-		"4" : [1,2,3,4,5,6,7,8,9],
-		"5" : [1,2,3,4,5,6,7,8,9],
-		"6" : [1,2,3,4,5,6,7,8,9],
-		"7" : [1,2,3,4,5,6,7,8,9],
-		"8" : [1,2,3,4,5,6,7,8,9],
-		"9" : [1,2,3,4,5,6,7,8,9]
-	};
-	cellColors: Array<any> = [
-	"#000000","#ff0000", "#0037ff", 
-	"#0037ff", "#000000", "#ff0000", 
-	"#000000", "#ff0000",  "#0037ff",]
+	gameMode : string = 'e';
+	resultCellObj: any = {};
 
 	constructor(public el: ElementRef) { }
 
@@ -35,26 +23,71 @@ export class ContainerComponent implements OnInit {
 		this.totalBlock = this.cell * this.cell;
 		this.totalCell = this.totalBlock * this.totalBlock;
 		this.el.nativeElement.style.display = 'inline-block';
-		//this.el.nativeElement.style.width = (this.cellWidth*(this.totalBlock+1)).toString()+'px';
-		this.generateCells();
+
+		this.changeMode(this.gameMode);
+	}
+
+	getRandomArrayElements(arr, count) {
+	    var shuffled = arr.slice(0), i = arr.length, min = i - count, temp, index;
+	    while (i-- > min) {
+	        index = Math.floor((i + 1) * Math.random());
+	        temp = shuffled[index];
+	        shuffled[index] = shuffled[i];
+	        shuffled[i] = temp;
+	    }
+	    return shuffled.slice(min);
+	}
+
+
+	changeMode(mode:any=''){
+		if (mode != ''){
+			this.gameMode = mode;
+		}
+		let removeCellCount = 0;
+		if (this.gameMode === 'e') {
+			removeCellCount = 30;
+		} else if (this.gameMode === 'm') {
+			removeCellCount = 40;
+		} else if (this.gameMode === 'h') {
+			removeCellCount = 50;
+		}
+		this.regenerateCells();
+		let nodeArr = Array.prototype.slice.call(document.querySelectorAll("td"));
+		let randomNods = this.getRandomArrayElements(nodeArr, removeCellCount);
+		randomNods.forEach((e)=>{
+			e.innerHTML = "";
+			 e.classList.remove("display-cell"); 
+		});
+
+	}
+	regenerateCells(regenerate: boolean = false) {
+		if (regenerate === true) {
+			let randomIndex = Math.floor(Math.random()*SampleData.length);
+			this.resultCellObj = SampleData[randomIndex];
+		}
+		this.generateCells(regenerate);
 		this.generatecellText();
 	}
 
-	generateCells() {
+
+	generateCells(regenerate:boolean = false) {
 		let row: number = 1;
 		let column: number = 1;
 		let block: number = 1;
 		let blockRowCount: number = 0;
+		
+		this.el.nativeElement.querySelector("#content").innerHTML = "";
+
 		let table = document.createElement('table');
-		table.setAttribute("cellpadding",0);
-		table.setAttribute("cellspacing",0);
-		this.el.nativeElement.appendChild(table);
+		table.setAttribute("cellpadding","0");
+		table.setAttribute("cellspacing","0");
+		table.setAttribute("border","0");
+		this.el.nativeElement.querySelector("#content").appendChild(table);
 		let tr = document.createElement('tr');
 		table.appendChild(tr);
 
 		for (let c = 1; c <= this.totalCell; c++) {
 			let td: any = document.createElement('td');
-			// td.innerText = column.toString();
 			td.setAttribute('data-column',column.toString());
 			td.setAttribute('data-row',row.toString());
 
@@ -69,9 +102,32 @@ export class ContainerComponent implements OnInit {
 			if (c%(this.cell * this.totalBlock) === 0) {
 				blockRowCount += this.cell;	
 			}
-			td.style.border = "1px solid "+this.cellColors[(block-1)];
+
 			td.setAttribute('data-block',block.toString());
+
+			if (regenerate === true) {
+				let cellvalue = this.resultCellObj[row][(c-1)%this.totalBlock];
+				td.innerText = cellvalue;
+			}
 			
+			if (column%this.cell === 0 ) {
+				td.style["border-right"] = '2px solid #000';
+			} else if (column === 1) {
+				td.style["border-left"] = '2px solid #000';
+				td.style["border-right"] = '1px solid #CCC';
+			} else {
+				td.style["border-right"] = '1px solid #CCC';
+			}
+			if (row === 1) {
+				td.style["border-top"] = '2px solid #000';
+				td.style["border-bottom"] = '1px solid #CCC';
+			} else if (row%this.cell === 0) {
+				td.style["border-bottom"] = '2px solid #000';
+			} else {
+				td.style["border-bottom"] = '1px solid #CCC';
+			}
+
+			td.classList.add("display-cell");
 			tr.appendChild(td);
 			if (column === this.totalBlock) {
 				column = 1;
@@ -83,27 +139,13 @@ export class ContainerComponent implements OnInit {
 			}
 		}
 		
+
 	}
 
 	generatecellText() {
-		this.cellGenerateOrder.forEach((block)=>{
-			let midBlockElements = document.querySelectorAll("td[data-block='"+block+"']");
-			let cellArr = [1,2,3,4,5,6,7,8,9]; // this.allCells[block];
-			/*midBlockElements.forEach((item:any)=> {
-					
-				let cell = this.getProperCell(cellArr, item);
-				if (cell) {
-					item.setAttribute("data-value", cell);
-					item.innerText = cell;
-					this.allCells[block].splice( this.allCells[block].indexOf(cell) , 1 );
-				}
-			});*/
-		});
-
 		
-		// console.log(blankElements);
-		//console.log(this.allCells);
-		for (let row = 1; row<=this.totalBlock-1; row++ ) {
+
+		for (let row = 1; row<=this.totalBlock; row++ ) {
 			let blankElements = document.querySelectorAll("td[data-row='"+row+"']:not([data-value])");	
 			
 
@@ -159,11 +201,9 @@ export class ContainerComponent implements OnInit {
 
 					element.setAttribute("data-value", cell);
 					element.innerText = cell;
-					this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(cell) , 1 );
 					cellArr.splice( cellArr.indexOf(cell) , 1 );
 				} else {
 					element.setAttribute("data-tmpvalue", lastCell);
-					this.allCells[element.dataset.block].splice( this.allCells[element.dataset.block].indexOf(lastCell) , 1 );
 					cellArr.splice( cellArr.indexOf(lastCell) , 1 );
 				}
 			});
@@ -182,11 +222,26 @@ export class ContainerComponent implements OnInit {
 						filterCell[0].setAttribute('data-value', cellValue );
 						filterCell[0].innerText = cellValue;
 					}
-					console.log(cellValue, filterCell);
 
 			});
 		}
 		
+
+		if (document.querySelectorAll("td[data-value]").length !== this.totalCell) {
+			this.regenerateCells(true);
+		} else {
+			this.resultCellObj = {};
+			document.querySelectorAll("td[data-value]").forEach((element:any)=>{
+				if (this.resultCellObj[ element.dataset.row ] === undefined) {
+					this.resultCellObj[ element.dataset.row ] = [];
+				}
+				this.resultCellObj[ element.dataset.row ].push( Number(element.dataset.value) );
+				element.removeAttribute("data-value");
+				element.removeAttribute("data-tmpvalue");
+			});
+
+			// console.log("proper", this.resultCellObj);
+		}
 	}
 
 	swapLastCell( targetElement, targetCell) {
@@ -195,7 +250,7 @@ export class ContainerComponent implements OnInit {
 		let targetColumn = targetElement.dataset.column;
 		// let filterCell = null;
 		let rowCells = document.querySelectorAll("td[data-row='"+targetRow+"']:not([data-tmpvalue='"+targetCell+"'])");
-		console.log(rowCells);
+		// console.log(rowCells);
 		let filterNodes = [];
 		rowCells.forEach((element:any, index)=>{
 			let filterData = {
