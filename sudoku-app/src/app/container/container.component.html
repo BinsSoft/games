@@ -1,0 +1,43 @@
+<div id="content" >
+	<div id="game-container" (keydown)="checkInput($event)"></div>
+	<div class="result-content" *ngIf="displayResult">
+		<img src="assets/thumbs-down.png" *ngIf="!resultStatus">
+		<p *ngIf="!resultStatus">Opps, You fail.</p>
+		<img src="assets/thumbs-up.png" *ngIf="resultStatus">
+		<p *ngIf="resultStatus">Congratulations, You win.</p>
+
+		<p>
+			You took {{gameTime.total}} second(s)
+			<br/><br/>
+			<button mat-raised-button color="primary" (click)="displayResult=false" >Close</button>
+			&nbsp;
+			<button mat-raised-button color="primary" (click)="regenerateCells()">Restart</button>
+		</p>
+	</div>
+</div>
+<div id="action-content">
+	<div class="game-mode" *ngIf="!gameStatus">
+		<mat-button-toggle-group #mode="matButtonToggleGroup" [value]="gameMode" (click)="changeMode(mode.value)" [disabled]="gameStatus">
+		  <mat-button-toggle value="e">Easy
+		  </mat-button-toggle>
+		  <mat-button-toggle value="m">Medium
+		  </mat-button-toggle>
+		  <mat-button-toggle value="h">Hard
+		  </mat-button-toggle>
+		</mat-button-toggle-group>
+	</div>
+	<div class="extra-action-container" *ngIf="!gameStatus">
+		<button mat-raised-button color="primary" (click)="regenerateCells()" [disabled]="gameStatus">Refresh</button>
+		&nbsp;
+		<button mat-raised-button color="primary"(click)="startGame()" [disabled]="gameStatus">Start</button>
+		
+	</div>
+	<div class="extra-action-container" *ngIf="gameStatus">
+		<p class="game-stat-container">
+			You solved {{ solvedCellCount }} out of {{totalHideCellCount}} cells
+		</p>
+		<button mat-raised-button color="primary"(click)="helpGame()" [disabled]="!gameStatus || helpCount==0 || helpStatus">Help ({{helpCount}})</button>
+		&nbsp;
+		<button mat-raised-button color="primary"(click)="quitGame()" [disabled]="!gameStatus">Quit</button>
+	</div>
+</div>

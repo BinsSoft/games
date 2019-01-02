@@ -1,5 +1,5 @@
 import { Component, OnInit , ElementRef, Input} from '@angular/core';
-import SampleData from "../../assets/SampleData.json"; 
+import * as CONFIGDATA from '../config'; 
 
 @Component({
   selector: 'app-container',
@@ -15,16 +15,27 @@ export class ContainerComponent implements OnInit {
 	cellGenerateOrder: Array<any> = [5];
 	gameMode : string = 'e';
 	resultCellObj: any = {};
+	helpCount: number = 20;
+	gameStatus: boolean = false;
+	helpStatus: boolean = false;
+	displayResult: boolean = false;
+	resultStatus: boolean = false;
+	solvedCellCount: number = 0;
+	totalHideCellCount: number  = 0;
+	gameTime : any = {
+		start : 0,
+		end : 0,
+		total:0
+	};
+	
 
 	constructor(public el: ElementRef) { }
 
 	ngOnInit() {
-
 		this.totalBlock = this.cell * this.cell;
 		this.totalCell = this.totalBlock * this.totalBlock;
 		this.el.nativeElement.style.display = 'inline-block';
-
-		this.changeMode(this.gameMode);
+		this.regenerateCells();
 	}
 
 	getRandomArrayElements(arr, count) {
@@ -38,35 +49,96 @@ export class ContainerComponent implements OnInit {
 	    return shuffled.slice(min);
 	}
 
+	startGame() {
 
-	changeMode(mode:any=''){
-		if (mode != ''){
-			this.gameMode = mode;
-		}
-		let removeCellCount = 0;
-		if (this.gameMode === 'e') {
-			removeCellCount = 30;
-		} else if (this.gameMode === 'm') {
-			removeCellCount = 40;
-		} else if (this.gameMode === 'h') {
-			removeCellCount = 50;
-		}
-		this.regenerateCells();
-		let nodeArr = Array.prototype.slice.call(document.querySelectorAll("td"));
-		let randomNods = this.getRandomArrayElements(nodeArr, removeCellCount);
-		randomNods.forEach((e)=>{
-			e.innerHTML = "";
-			 e.classList.remove("display-cell"); 
+		this.changeMode();
+		this.gameStatus = true;
+		this.displayResult = false;
+		this.gameTime.start = new Date().getTime();
+	}
+	quitGame() {
+		let nodeArr = Array.prototype.slice.call(document.querySelectorAll("td.hide-cell"));
+		nodeArr.forEach((element)=>{
+			let targetRow = element.dataset.row;
+			let index = Array.prototype.indexOf.call(element.parentNode.children, element);
+			let item = this.resultCellObj[targetRow][index];
+			if(!element.classList.contains('right')) {
+				element.classList.add('highlight');
+			}
+			element.innerText = item;
 		});
+		this.gameStatus = false;
 
+		this.calculateresult();
+	}
+	helpGame() {
+		if (this.helpCount > 0){
+			this.helpStatus = true;
+			let nodeArr = Array.prototype.slice.call(document.querySelectorAll("td.hide-cell:not(.highlighted)"));
+			let randomNods = this.getRandomArrayElements(nodeArr, 1);
+			if (randomNods && randomNods.length >0){
+				let targetElement = randomNods[0];
+				let targetRow = targetElement.dataset.row;
+				let index = Array.prototype.indexOf.call(targetElement.parentNode.children, targetElement);
+				let item = this.resultCellObj[targetRow][index];
+	
+				targetElement.classList.add('highlight');
+				targetElement.innerText = item;
+				setTimeout(()=>{
+					targetElement.classList.remove('highlight');
+					targetElement.classList.add('highlighted');
+					targetElement.innerText = "";
+					this.helpStatus = false;
+				},1000);
+	
+				this.helpCount --;
+			}
+		}
+	}
+	changeMode(mode:any=''){
+
+		if (this.gameStatus === false) {
+			if (mode != ''){
+				this.gameMode = mode;
+			}
+			if (this.gameMode === 'e') {
+				this.totalHideCellCount = 25;
+			} else if (this.gameMode === 'm') {
+				this.totalHideCellCount = 40;
+			} else if (this.gameMode === 'h') {
+				this.totalHideCellCount = 50;
+			}
+			this.regenerateCells();
+
+			/* REMOVE RANDOM TABLE CELL CONTENT*/
+			let nodeArr = Array.prototype.slice.call(document.querySelectorAll("td"));
+			let randomNods = this.getRandomArrayElements(nodeArr, this.totalHideCellCount);
+			randomNods.forEach((e)=>{
+				e.innerHTML = "";
+				e.classList.remove("display-cell"); 
+				e.classList.add("hide-cell");
+			});
+		}
+
+	}
+	calculateresult() {
+		this.displayResult = true;
+		if (this.solvedCellCount >= this.totalHideCellCount) {
+			this.resultStatus = true;
+		} else {
+			this.resultStatus = false;
+		}
+		this.gameTime.end = new Date().getTime();
+		this.gameTime.total = Math.round( (this.gameTime.end - this.gameTime.start) / 1000); 
 	}
 	regenerateCells(regenerate: boolean = false) {
 		if (regenerate === true) {
-			let randomIndex = Math.floor(Math.random()*SampleData.length);
-			this.resultCellObj = SampleData[randomIndex];
+			let randomIndex = Math.floor(Math.random()*CONFIGDATA.SAMPLEDATA.length);
+			this.resultCellObj = CONFIGDATA.SAMPLEDATA[randomIndex];
 		}
 		this.generateCells(regenerate);
 		this.generatecellText();
+		this.displayResult = false;
 	}
 
 
@@ -76,13 +148,13 @@ export class ContainerComponent implements OnInit {
 		let block: number = 1;
 		let blockRowCount: number = 0;
 		
-		this.el.nativeElement.querySelector("#content").innerHTML = "";
+		this.el.nativeElement.querySelector("#game-container").innerHTML = "";
 
 		let table = document.createElement('table');
 		table.setAttribute("cellpadding","0");
 		table.setAttribute("cellspacing","0");
 		table.setAttribute("border","0");
-		this.el.nativeElement.querySelector("#content").appendChild(table);
+		this.el.nativeElement.querySelector("#game-container").appendChild(table);
 		let tr = document.createElement('tr');
 		table.appendChild(tr);
 
@@ -238,6 +310,7 @@ export class ContainerComponent implements OnInit {
 				this.resultCellObj[ element.dataset.row ].push( Number(element.dataset.value) );
 				element.removeAttribute("data-value");
 				element.removeAttribute("data-tmpvalue");
+				element.setAttribute('contenteditable', 'true');
 			});
 
 			// console.log("proper", this.resultCellObj);
@@ -305,6 +378,27 @@ export class ContainerComponent implements OnInit {
 		return cell;
 	}
 
+	checkInput(e){
 
+		if ((((e.keyCode >=97 && e.keyCode <= 105) || (e.keyCode >=49 && e.keyCode <= 57)) && e.target.innerText == '') || e.keyCode === 8) {
+			let targetElement = e.target;
+			let targetRow = targetElement.dataset.row;
+			let index = Array.prototype.indexOf.call(targetElement.parentNode.children, targetElement);
+
+			if (Number(e.key) === this.resultCellObj[targetRow][index]) {
+				this.solvedCellCount ++;
+				targetElement.classList.add('right');
+				if (this.solvedCellCount >= this.totalHideCellCount) {
+					this.calculateresult();
+				}
+			} else {
+				targetElement.classList.remove('right');
+			}
+		}
+		else {
+			e.preventDefault();
+		}
+		
+	}
 
 }
