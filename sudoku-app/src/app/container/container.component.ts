@@ -117,6 +117,7 @@ export class ContainerComponent implements OnInit {
 				e.innerHTML = "";
 				e.classList.remove("display-cell"); 
 				e.classList.add("hide-cell");
+				e.setAttribute('contenteditable', 'true');
 			});
 		}
 
@@ -310,7 +311,7 @@ export class ContainerComponent implements OnInit {
 				this.resultCellObj[ element.dataset.row ].push( Number(element.dataset.value) );
 				element.removeAttribute("data-value");
 				element.removeAttribute("data-tmpvalue");
-				element.setAttribute('contenteditable', 'true');
+				
 			});
 
 			// console.log("proper", this.resultCellObj);
