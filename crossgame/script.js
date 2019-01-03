@@ -77,9 +77,11 @@ class Board {
 		let itemIndex = 0;
 		if (hitCount === 0) {
 			itemIndex = 4; // cellvalue = 5
-		} else if(hitCount === 1) {
-			itemIndex = Math.floor(Math.random()*cellItemList.length);	
-		} else if(hitCount === 2 || hitCount === 4 || hitCount === 6 || hitCount === 8) {
+
+		} else if(hitCount === 1 || hitCount === 8) {
+			itemIndex = Math.floor(Math.random()*cellItemList.length);
+
+		} else if(hitCount === 2 || hitCount === 4 || hitCount === 6 ) {
 			for (let systemItem of systemPlayerBlockCells) {
 				let winPossibleCells = winCombinations.filter((item)=>{
 					return item.indexOf(systemItem) > -1;
@@ -95,7 +97,8 @@ class Board {
 					return false;
 				}
 			}
-		} else if(hitCount === 3 || hitCount === 5 || hitCount === 7 || hitCount === 9) {
+
+		} else if(hitCount === 3 || hitCount === 5 || hitCount === 7) {
 			
 			for (let playerItem of currentPlayerBlockCells) {
 				let winPossibleCells = winCombinations.filter((item)=>{
@@ -113,15 +116,17 @@ class Board {
 				}
 			}
 		}
-		let randomItem = cellItemList[itemIndex];
-		systemPlayerBlockCells.push(randomItem);
-		let systemPlayer = gamePlayerList.find((p)=>{
-			return (p.type && p.type == 'System')
-		})
-		let playContainer = $(".play-conatiner");
-		playContainer.attr('data-current-key',systemPlayer.id);
-
-		$("div.cell:eq("+(randomItem-1)+")").trigger("click");
+		if (itemIndex) {
+			let randomItem = cellItemList[itemIndex];
+			systemPlayerBlockCells.push(randomItem);
+			let systemPlayer = gamePlayerList.find((p)=>{
+				return (p.type && p.type == 'System')
+			})
+			let playContainer = $(".play-conatiner");
+			playContainer.attr('data-current-key',systemPlayer.id);
+	
+			$("div.cell:eq("+(randomItem-1)+")").trigger("click");
+		}
 	}
 	appendBoard(playContainer)
 	{
