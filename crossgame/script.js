@@ -47,11 +47,9 @@ const audios = {
 const tossArr = ['Head', 'Tail'];
 
 var playerContainer , initContainer;
-
-
-class Board {
-	constructor() {
-		this.winCombinations = [
+var systemPlayerBlockCells = [];
+var currentPlayerBlockCells = [];
+var winCombinations = [
 			[1,2,3],
 			[4,5,6],
 			[7,8,9],
@@ -61,9 +59,62 @@ class Board {
 			[1,5,9],
 			[3,5,7]
 		];
+class Board {
+	constructor() {
+		/*this.winCombinations = [
+			[1,2,3],
+			[4,5,6],
+			[7,8,9],
+			[1,4,7],
+			[2,5,8],
+			[3,6,9],
+			[1,5,9],
+			[3,5,7]
+		];*/
 	}
-	static playBySystem(){
-		let randomItem = cellItemList[Math.floor(Math.random()*cellItemList.length)];
+	static playBySystem() {
+		let hitCount = 9 - cellItemList.length;
+		let itemIndex = 0;
+		if (hitCount === 0) {
+			itemIndex = 4; // cellvalue = 5
+		} else if(hitCount === 1) {
+			itemIndex = Math.floor(Math.random()*cellItemList.length);	
+		} else if(hitCount === 2 || hitCount === 4 || hitCount === 6 || hitCount === 8) {
+			for (let systemItem of systemPlayerBlockCells) {
+				let winPossibleCells = winCombinations.filter((item)=>{
+					return item.indexOf(systemItem) > -1;
+				});
+				if (winPossibleCells.length > 0) {
+					let filterCells = [];
+					winPossibleCells.forEach((item) => {
+						filterCells.concat(item);
+					});
+					filterCells = filterCells.filter((v, i, a) => a.indexOf(v) === i);
+					filterCells.splice( filterCells.indexOf(systemItem),1 );
+					itemIndex = Math.floor(Math.random()*filterCells.length);
+					return false;
+				}
+			}
+		} else if(hitCount === 3 || hitCount === 5 || hitCount === 7 || hitCount === 9) {
+			
+			for (let playerItem of currentPlayerBlockCells) {
+				let winPossibleCells = winCombinations.filter((item)=>{
+					return item.indexOf(playerItem) > -1;
+				});
+				if (winPossibleCells.length > 0) {
+					let filterCells = [];
+					winPossibleCells.forEach((item) => {
+						filterCells.concat(item);
+					});
+					filterCells = filterCells.filter((v, i, a) => a.indexOf(v) === i);
+					filterCells.splice( filterCells.indexOf(playerItem),1 );
+					itemIndex = Math.floor(Math.random()*filterCells.length);
+					return false;
+				}
+			}
+		}
+		let randomItem = cellItemList[itemIndex];
+		systemPlayerBlockCells.push(randomItem);
 		let systemPlayer = gamePlayerList.find((p)=>{
 			return (p.type && p.type == 'System')
 		})
@@ -122,6 +173,7 @@ class Board {
 								playContainer.attr('data-current-key',humanPlayer.id);
 							}
 							this.defineResult(playContainer, inputObj);
+							currentPlayerBlockCells.push(cellValue);
 							cellItemList.splice(cellItemList.indexOf(cellValue),1);
 
 						} else {
@@ -238,13 +290,13 @@ class Board {
 			let player2Result = gamePlayerList[1].result;
 			player1Result.sort();
 			player2Result.sort();
-			if (searchForArray(this.winCombinations, player1Result) == true) {
+			if (searchForArray(winCombinations, player1Result) == true) {
 				let msg = gamePlayerList[0].name + ' won the game';
 				if (playMode == 1 || gamePlayerList[0].id == currentPlayer.id) {
 					msg =  'You won the game'
 				}
 				return {status : true, winUser : gamePlayerList[0], msg : msg };
-			} else if (searchForArray(this.winCombinations, player2Result) == true) {
+			} else if (searchForArray(winCombinations, player2Result) == true) {
 				
 				return {status : true, winUser : gamePlayerList[1] , msg : gamePlayerList[1].name + ' won the game'};
 			} else {
