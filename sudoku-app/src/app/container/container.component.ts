@@ -229,7 +229,6 @@ export class ContainerComponent implements OnInit {
 
 				let fullElements = document.querySelectorAll("td[data-row='"+row+"']");
 				fullElements.forEach((e:any)=>{
-					// console.log("row  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1) {
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					}
@@ -237,38 +236,27 @@ export class ContainerComponent implements OnInit {
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.tmpvalue) ), 1);
 					}
 				});
-
-
-				// console.log("after row:", cellArr);
 				let lastCell = cellArr[0];
 				let colElements = document.querySelectorAll("td[data-column='"+element.dataset.column+"']");
 
 				colElements.forEach((e:any)=>{
-					// console.log("column  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					} else if (cellArr.indexOf( Number(e.dataset.tmpvalue) ) > -1) {
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.tmpvalue) ), 1);
 					}
 				});
-				// console.log("after column", cellArr);
 				let blockElements = document.querySelectorAll("td[data-block='"+element.dataset.block+"']");
 				if (cellArr.length > 0) {
 					lastCell = cellArr[0];
 				}
 				blockElements.forEach((e:any)=>{
-					// console.log("block  : "+e.dataset.value);
 					if (cellArr.indexOf( Number(e.dataset.value) ) > -1){
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.value) ), 1);
 					} else if (cellArr.indexOf( Number(e.dataset.tmpvalue) ) > -1) {
 						cellArr.splice(cellArr.indexOf( Number(e.dataset.tmpvalue) ), 1);
 					}
 				});
-			
-				
-				
-				 // console.log("after block", cellArr);
-
 				let cell = this.getProperCell(cellArr, element);
 				if (cell) {
 
@@ -313,8 +301,6 @@ export class ContainerComponent implements OnInit {
 				element.removeAttribute("data-tmpvalue");
 				
 			});
-
-			// console.log("proper", this.resultCellObj);
 		}
 	}
 
@@ -322,9 +308,7 @@ export class ContainerComponent implements OnInit {
 		let targetRow = targetElement.dataset.row;
 		let targetBlock = targetElement.dataset.block;
 		let targetColumn = targetElement.dataset.column;
-		// let filterCell = null;
 		let rowCells = document.querySelectorAll("td[data-row='"+targetRow+"']:not([data-tmpvalue='"+targetCell+"'])");
-		// console.log(rowCells);
 		let filterNodes = [];
 		rowCells.forEach((element:any, index)=>{
 			let filterData = {
@@ -346,9 +330,7 @@ export class ContainerComponent implements OnInit {
 			) {
 				filterNodes.push(element);
 			}
-			// console.log(filterData);
 		});
-		//console.log(rowCells);
 		return filterNodes;
 	}
 
@@ -359,8 +341,6 @@ export class ContainerComponent implements OnInit {
 		let targetBlock = targetElement.dataset.block;
 		let randormIndex = (targetBlock === "5" || targetBlock=== "1" || targetBlock==="9")? Math.floor(Math.random()*cellArr.length) : cellIndex;
 		let cell = cellArr[  randormIndex ];
-
-		// console.log(cellArr, cell, targetElement);
 		cellArr.splice( cellArr.indexOf(cell) , 1 );
 		if (cellArr.length > 0 
 			&&
