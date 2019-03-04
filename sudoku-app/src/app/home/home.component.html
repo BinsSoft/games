@@ -1,1 +1,71 @@
+<div class="header">
+        <div class="timer-container" *ngIf="status.gamestart">
+            <span>{{ gameTime.show }}</span>
+        </div>
+        <ul class="header-menu">
+            <li (click)="helpGame()" *ngIf="status.gamestart">
+                <span [matBadge]="helpCount" matBadgeColor="warn"> <fa name="question-circle" ></fa></span>
+
+            </li>
+            <li (click)="toggleMenu()"><fa name="cog"></fa></li>
+        </ul>
+        <div id="action-content" class="slider" [class.closed]="status.sidebarmenu">
+
+                <div class="game-mode" >
+                    <mat-button-toggle-group #mode="matButtonToggleGroup" value="e" (click)="changeMode(mode.value)" [disabled]="status.gamestart">
+                      <mat-button-toggle value="e">Easy
+                      </mat-button-toggle>
+                      <mat-button-toggle value="m">Medium
+                      </mat-button-toggle>
+                      <mat-button-toggle value="h">Hard
+                      </mat-button-toggle>
+                    </mat-button-toggle-group>
+                </div>
+                <div class="extra-action-container game-start-action-container" >
+                    <mat-button-toggle-group #startAction="matButtonToggleGroup"  (click)="startGameAction(startAction.value)" [disabled]="status.gamestart">
+                        <mat-button-toggle value="r">Refresh
+                        </mat-button-toggle>
+                        <mat-button-toggle value="s">Start
+                        </mat-button-toggle>
+                      </mat-button-toggle-group>
+                </div>
+                <div class="extra-action-container quit-action-container" *ngIf="status.gamestart">
+                    <mat-button-toggle-group #quitAction="matButtonToggleGroup"  (click)="quitGameAction()" >
+                        <mat-button-toggle value="q">Quit
+                        </mat-button-toggle>
+                    </mat-button-toggle-group>
+                    
+                </div>
+            </div>
+</div>
+<div class="game-container" [class.active]="!status.sidebarmenu">
 <app-container [cell]="3"></app-container>
+</div>
+<div class="modal" *ngIf="!howToPlaymodalDismiss" >
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>Your Guidance</h2>
+            <span class="modal-close" (click)="howToPlaymodalDismiss=true"><fa name="times"></fa></span>
+            <!-- <div class="clearfix"></div> -->
+        </div>
+        <div class="modal-body">
+                <ul>
+                    <li>This is a Sudoku game</li>
+                    <li>A simple puzzle game, you have to fill up the blank cells with correct numbers</li>
+                    <li>
+                        <div>Remember a few things</div>
+                        <ul>
+                            <li>The blank cells must be filled up by only 1 to 9 numbers</li>
+                            <li>There is a total of 9 blocks, every block, row, and column must be filled up by 1 to 9 uniquely.  <br/>
+                                <strong>For example: </strong>in the 1st row, there would be 1,2,3,4,5,6,7,8,9. In First column there would be 1,2,3,4,5,6,7,8,9 and in first block would also be same 1,2,3,4,5,6,7,8,9 </li>
+                        </ul>
+                    </li>
+                    <li>There are 3 modes available. <strong>Easy, Midium and Hard</strong>. Before starting the game, you can change the mode. After the game start, you can not able to change the mode.</li>
+                    <li>Before start game if you want to puzzle once more, click <strong>Refresh</strong> button</li>
+                    <li>After starting the game you will get help for 20 times. In the right top, there will be a button with the sign <strong>'?'</strong> you can click and get the help </li>
+                    <li>When your game is going on, A timer will be running.</li>
+                    <li>Anytime within the game, you can quit by clicking a button <strong>Quit</strong></li>
+                </ul>
+        </div>
+    </div>
+</div>

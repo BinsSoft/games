@@ -1,0 +1,137 @@
+.header {
+    height: 50px;
+}
+.timer-container {
+    position: absolute;
+    left: 50%;
+    line-height: 50px;
+    font-size: 25px;
+    font-weight: bold;
+}
+#action-content {
+	margin-top: 10px;
+    text-align: center;
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background:rgba(247, 247, 247, 0.4);
+    width: 300px;
+    height : calc(100% - 50px);
+}
+.slider {
+    max-height: calc(100% - 50px);
+	overflow-y: hidden;
+	transition-property: all;
+	transition-duration: .5s;
+	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+}
+.slider.closed {
+	max-height: 0;
+}
+.header-menu {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    float: right;
+    
+}
+.header-menu li {
+    display: inline;
+    padding: 0 15px;
+    line-height: 50px;
+    color: #FFF;
+    font-size: 25px;
+}
+.game-container {
+	width: 100%;
+	margin: 0 auto;
+}
+
+/* MODAL */
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+}
+.modal .modal-container {
+    width: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background: #FFF;
+    padding: 10px;
+    border-radius: 5px;
+}
+.modal .modal-container {
+    color: #222;
+}
+.modal .modal-container .modal-header {
+    width: 100%;
+}
+.modal .modal-container .modal-header h2 {
+    width: 90%;
+    float: left;
+    
+}
+.modal .modal-container .modal-header span.modal-close {
+    font-size: 23px;
+    cursor: pointer;
+    color: #757575;
+    width: 10%;
+    float: right;
+    text-align: right;
+}
+
+.modal .modal-container .modal-header::after {
+    content: "";
+    display: block;
+    clear: both;
+    border-bottom: 1px solid #cccccc;
+}
+
+
+.modal .modal-container .modal-body {
+    padding: 5px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: scroll;
+    font-size: 13px;
+}
+.modal .modal-container .modal-body ul{
+    /* margin: 0;
+    padding: 0; */
+}
+.modal .modal-container .modal-body ul li {
+    padding: 5px;
+    line-height: 20px;
+}
+/* END MODAL */
+@media screen and (max-width:414px ) {
+    .modal .modal-container {
+        width: 90%;
+        top: 5px;
+        left: 5px;
+        transform: translate(0,0);
+    }
+	#action-content {
+        width: 100%;
+        background:rgba(247, 247, 247, 0.9);
+	}
+}
+@media screen and (min-width:415px ) {
+	.game-container {
+		width: 50%;
+		margin: 0 auto;
+    }
+    .game-container.active {
+		margin: 0 0 0 15%;
+	}
+	.game-container table{
+		width: 50%;
+	}
+
+}

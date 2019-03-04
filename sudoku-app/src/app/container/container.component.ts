@@ -1,14 +1,15 @@
 import { Component, OnInit , ElementRef, Input} from '@angular/core';
 import * as CONFIGDATA from '../config'; 
-
+import {CommonService} from "../common.service";
 @Component({
   selector: 'app-container',
   templateUrl: './container.component.html',
   styleUrls: ['./container.component.css']
 })
 export class ContainerComponent implements OnInit {
+	
 
-	@Input("cell") private cell: number;
+	@Input("cell") private cell: number = 0;
 	totalCell: number = 0;
 	totalBlock: number = 0;
 	cellWidth: number = 50;
@@ -29,7 +30,7 @@ export class ContainerComponent implements OnInit {
 	};
 	
 
-	constructor(public el: ElementRef) { }
+	constructor(public el: ElementRef, private cService: CommonService) { }
 
 	ngOnInit() {
 		this.totalBlock = this.cell * this.cell;
@@ -55,6 +56,7 @@ export class ContainerComponent implements OnInit {
 		this.gameStatus = true;
 		this.displayResult = false;
 		this.gameTime.start = new Date().getTime();
+
 	}
 	quitGame() {
 		let nodeArr = Array.prototype.slice.call(document.querySelectorAll("td.hide-cell"));
@@ -70,6 +72,7 @@ export class ContainerComponent implements OnInit {
 		this.gameStatus = false;
 
 		this.calculateresult();
+		return this.gameStatus;
 	}
 	helpGame() {
 		if (this.helpCount > 0){
@@ -94,6 +97,7 @@ export class ContainerComponent implements OnInit {
 				this.helpCount --;
 			}
 		}
+		return this.helpCount;
 	}
 	changeMode(mode:any=''){
 
@@ -112,6 +116,10 @@ export class ContainerComponent implements OnInit {
 
 			/* REMOVE RANDOM TABLE CELL CONTENT*/
 			let nodeArr = Array.prototype.slice.call(document.querySelectorAll("td"));
+			nodeArr.forEach((item)=>{
+				item.removeAttribute('data-column');
+				item.removeAttribute('data-block');
+			});
 			let randomNods = this.getRandomArrayElements(nodeArr, this.totalHideCellCount);
 			randomNods.forEach((e)=>{
 				e.innerHTML = "";
@@ -122,16 +130,7 @@ export class ContainerComponent implements OnInit {
 		}
 
 	}
-	calculateresult() {
-		this.displayResult = true;
-		if (this.solvedCellCount >= this.totalHideCellCount) {
-			this.resultStatus = true;
-		} else {
-			this.resultStatus = false;
-		}
-		this.gameTime.end = new Date().getTime();
-		this.gameTime.total = Math.round( (this.gameTime.end - this.gameTime.start) / 1000); 
-	}
+
 	regenerateCells(regenerate: boolean = false) {
 		if (regenerate === true) {
 			let randomIndex = Math.floor(Math.random()*CONFIGDATA.SAMPLEDATA.length);
@@ -177,6 +176,7 @@ export class ContainerComponent implements OnInit {
 			}
 
 			td.setAttribute('data-block',block.toString());
+			td.setAttribute('data-cellIndex', c);
 
 			if (regenerate === true) {
 				let cellvalue = this.resultCellObj[row][(c-1)%this.totalBlock];
@@ -287,7 +287,7 @@ export class ContainerComponent implements OnInit {
 			});
 		}
 		
-
+		
 		if (document.querySelectorAll("td[data-value]").length !== this.totalCell) {
 			this.regenerateCells(true);
 		} else {
@@ -358,10 +358,24 @@ export class ContainerComponent implements OnInit {
 		
 		return cell;
 	}
-
+	calculateresult() {
+		this.displayResult = true;
+		if (this.solvedCellCount >= this.totalHideCellCount) {
+			this.resultStatus = true;
+		} else {
+			this.resultStatus = false;
+		}
+		if (this.displayResult === true) {
+			this.cService.setGameEnd(true);
+			this.gameTime.end = new Date().getTime();
+			this.gameTime.total = Math.round( (this.gameTime.end - this.gameTime.start) / 1000); 
+			setTimeout(()=>{
+				this.displayResult = false;
+			}, 5000);
+		}
+	}
 	checkInput(e){
-
-		if ((((e.keyCode >=97 && e.keyCode <= 105) || (e.keyCode >=49 && e.keyCode <= 57)) && e.target.innerText == '') || e.keyCode === 8) {
+		if ((((e.keyCode >=97 && e.keyCode <= 105) || (e.keyCode >=49 && e.keyCode <= 57)) && e.target.innerText == '') || e.keyCode === 8 || e.keyCode === 46) {
 			let targetElement = e.target;
 			let targetRow = targetElement.dataset.row;
 			let index = Array.prototype.indexOf.call(targetElement.parentNode.children, targetElement);
@@ -380,6 +394,85 @@ export class ContainerComponent implements OnInit {
 			e.preventDefault();
 		}
 		
+	}
+
+	moveCell(event:any) {
+		if (event.keyCode>=37 && event.keyCode<=40) {
+			let targetCell = event.target;
+			let targetCellIndex = parseInt(targetCell.getAttribute('data-cellIndex'));
+			let focusElement = null;
+			if (event.keyCode === 37) { //left key
+				focusElement = this.moveToCell(targetCellIndex, 'left');
+			} else if (event.keyCode === 38) { // top key
+				focusElement = this.moveToCell(targetCellIndex, 'top');
+			} else if (event.keyCode === 39) { // right key
+				focusElement = this.moveToCell(targetCellIndex, 'right');
+			} else if (event.keyCode === 40) { // bottom key
+				focusElement = this.moveToCell(targetCellIndex, 'bottom');
+			}
+			if (focusElement) {
+				focusElement.focus();	
+				if (document.querySelector(".highlight-cell")){
+					document.querySelector(".highlight-cell").classList.remove('highlight-cell');
+				}
+				focusElement.classList.add("highlight-cell");
+			}
+		}
+	}
+
+	moveToCell(targetIndex, side) {
+		if (side==='left') {
+
+			let target = document.querySelector("[data-cellIndex='"+(targetIndex-1)+"']");
+			if (target) {
+				if (target.classList.value.indexOf("hide-cell") == -1) {
+					targetIndex -=1;
+					return this.moveToCell(targetIndex, side);
+				} else {
+					return target;
+				}
+			}
+			
+		} else if (side==='top') {
+			let target = document.querySelector("[data-cellIndex='"+(targetIndex-9)+"']");
+			if (target) {
+				if (target.classList.value.indexOf("hide-cell") == -1) {
+					targetIndex -=9;
+					return this.moveToCell(targetIndex, side);
+				} else {
+					return target;
+				}
+			}
+
+		} else if (side==='right') {
+			let target = document.querySelector("[data-cellIndex='"+(targetIndex+1)+"']");
+			if (target) {
+				if (target.classList.value.indexOf("hide-cell") == -1) {
+					targetIndex +=1;
+					return this.moveToCell(targetIndex, side);
+				} else {
+					return target;
+				}
+			}
+
+		} else if (side==='bottom') {
+			let target = document.querySelector("[data-cellIndex='"+(targetIndex+9)+"']");
+			if (target) {
+				if (target.classList.value.indexOf("hide-cell") == -1) {
+					targetIndex +=9;
+					return this.moveToCell(targetIndex, side);
+				} else {
+					return target;
+				}
+			}
+		}
+	}
+
+	setFocusCell(event:any) {
+		if (document.querySelector(".highlight-cell")){
+			document.querySelector(".highlight-cell").classList.remove('highlight-cell');
+		}
+		event.target.classList.add("highlight-cell");
 	}
 
 }
